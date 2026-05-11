@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  INTERN
+}
+
+enum AttendanceStatus {
+  HADIR
+  IZIN
+}
+
+model Division {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  created_at DateTime @default(now())
+
+  users    User[]
+  profiles InternProfile[]
+}
+
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  password       String
+  role           Role      @default(INTERN)
+  is_first_login Boolean   @default(true)
+  division_id    String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  division            Division?           @relation(fields: [division_id], references: [id])
+  profile             InternProfile?
+  attendances         Attendance[]
+  logbooks            Logbook[]
+  attendance_sessions AttendanceSession[]
+}
+
+model InternProfile {
+  id                String    @id @default(cuid())
+  user_id           String    @unique
+  photo_url         String?
+  university        String?
+  major             String?
+  jobdesk           String?
+  phone             String?
+  start_date        DateTime?
+  end_date          DateTime?
+  division_id       String?
+  finished_early_at DateTime?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  user     User      @relation(fields: [user_id], references: [id])
+  division Division? @relation(fields: [division_id], references: [id])
+}
+
+model AttendanceSession {
+  id                 String    @id @default(cuid())
+  date               DateTime  @db.Date
+  code               String    @unique
+  opened_at          DateTime  @default(now())
+  expires_at         DateTime
+  closed_at          DateTime?
+  created_by         String
+  created_at         DateTime  @default(now())
+
+  creator     User         @relation(fields: [created_by], references: [id])
+  attendances Attendance[]
+
+  @@unique([date])
+}
+
+model Attendance {
+  id                    String           @id @default(cuid())
+  user_id               String
+  attendance_session_id String
+  status                AttendanceStatus
+  reason                String?
+  clock_in_at           DateTime         @default(now())
+  clock_out_at          DateTime?
+  work_duration_minutes Int?
+  created_at            DateTime         @default(now())
+
+  user    User              @relation(fields: [user_id], references: [id])
+  session AttendanceSession @relation(fields: [attendance_session_id], references: [id])
+
+  @@unique([user_id, attendance_session_id])
+}
+
+model Logbook {
+  id            String   @id @default(cuid())
+  user_id       String
+  date          DateTime @db.Date
+  description   String
+  documentation String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, date])
+}
