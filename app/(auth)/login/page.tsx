@@ -1,4 +1,4 @@
-"use client"  // form butuh interaksi user — harus client component
+"use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       const data = await response.json()
 
-      console.log("Response:", response.ok, data)  // tambah ini
+      console.log("Response:", response.ok, data)
 
       if (!response.ok) {
         setError(data.error)
