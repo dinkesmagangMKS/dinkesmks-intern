@@ -27,11 +27,11 @@ async function main() {
 
   // Intern
   await prisma.user.upsert({
-    where: { email: "intern2@ims.com" },
+    where: { email: "intern3@ims.com" },
     update: {},
     create: {
       name: "Intern PSDK",
-      email: "intern2@ims.com",
+      email: "intern3@ims.com",
       password: hashedPassword,
       role: "INTERN",
       division_id: psdk?.id,

@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import imageCompression from "browser-image-compression"
+import { uploadFile } from "@/lib/supabase"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -31,13 +33,50 @@ export default function OnboardingPage() {
     })
   }
 
+  const handleUploadPhoto = async (file: File): Promise<string> => {
+    // Kompres foto
+    const compressed = await imageCompression(file, {
+      maxSizeMB: 0.5,        // target maksimal 500KB
+      maxWidthOrHeight: 800, // resize kalau terlalu besar
+      useWebWorker: true
+    })
+
+    // Buat nama file unik agar tidak bentrok
+    const fileName = `photos/${Date.now()}-${file.name}`
+
+    // Upload ke Supabase Storage
+    const photoUrl = await uploadFile(compressed, fileName)
+
+    return photoUrl
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     setLoading(true)
     setMessage("")
 
+    if (form.new_password.length < 8) {
+      setMessage("Password minimal 8 karakter")
+      setLoading(false)
+      return
+    }
+
+    if (form.new_password !== form.confirm_password) {
+      setMessage("Password baru dan konfirmasi password tidak sama")
+      setLoading(false)
+      return
+    }
+
+
+
     try {
+      let photoUrl = null
+
+      if (photo !== null) {
+        photoUrl = await handleUploadPhoto(photo)
+      }
+
       const response = await fetch("/api/onboarding", {
         method: "POST",
         headers: {
@@ -50,8 +89,9 @@ export default function OnboardingPage() {
           phone: form.phone,
           start_date: form.start_date,
           end_date: form.end_date,
+          old_password: form.old_password,
           password: form.new_password,
-          photo_url: null,
+          photo_url: photoUrl,
         }),
       })
 

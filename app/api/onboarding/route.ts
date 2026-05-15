@@ -12,6 +12,7 @@ export async function POST(request:Request) {
       phone, 
       start_date,
       end_date,
+      old_password,
       password,
       photo_url,
     } = await request.json()
@@ -22,9 +23,25 @@ export async function POST(request:Request) {
     }
     const userId = user.userId
 
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId }
+    })
+
+    if (!existingUser) {
+      return NextResponse.json({ error: "User tidak ditemukan" }, { status: 404 })
+    }
+
     if (!university || !major || !jobdesk || !start_date || !end_date || !password) {
       return NextResponse.json(
         { error: "Semua field wajib diisi" },
+        { status: 400 }
+      )
+    }
+
+    const passwordMatch = await bcrypt.compare(old_password, existingUser!.password)
+    if (!passwordMatch) {
+      return NextResponse.json(
+        { error: "Password lama tidak sesuai" },
         { status: 400 }
       )
     }
