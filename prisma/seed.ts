@@ -4,32 +4,15 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Buat divisi
-  const divisi = await Promise.all([
-    prisma.division.upsert({
-      where: { name: "Pelayanan Kesehatan" },
-      update: {},
-      create: { name: "Pelayanan Kesehatan" },
-    }),
-    prisma.division.upsert({
-      where: { name: "PSDK" },
-      update: {},
-      create: { name: "PSDK" },
-    }),
-    prisma.division.upsert({
-      where: { name: "P2P" },
-      update: {},
-      create: { name: "P2P" },
-    }),
-    prisma.division.upsert({
-      where: { name: "Apotek" },
-      update: {},
-      create: { name: "Apotek" },
-    }),
-  ]);
+  // Division
+  const psdk = await prisma.division.findUnique({
+    where: { name: "PSDK" },
+  });
 
-  // Buat Super Admin
-  const hashedPassword = await bcrypt.hash("superadmin123", 10);
+  // Password
+  const hashedPassword = await bcrypt.hash("password123", 10);
+
+  // Super Admin
   await prisma.user.upsert({
     where: { email: "superadmin@ims.com" },
     update: {},
@@ -42,10 +25,24 @@ async function main() {
     },
   });
 
+  // Intern
+  await prisma.user.upsert({
+    where: { email: "intern3@ims.com" },
+    update: {},
+    create: {
+      name: "Intern PSDK",
+      email: "intern3@ims.com",
+      password: hashedPassword,
+      role: "INTERN",
+      division_id: psdk?.id,
+    },
+  });
+
   console.log("Seed selesai");
-  console.log("Super Admin: superadmin@ims.com / superadmin123");
 }
 
 main()
   .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
