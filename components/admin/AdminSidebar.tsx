@@ -28,7 +28,7 @@ export function AdminSidebar() {
   // Sesuai request: dashboard, absen, intern, dan profile
   const menuItems = [
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Data Absensi", href: "/admin/absensi", icon: CalendarCheck2 },
+    { name: "Data Absensi", href: "/admin/attendance", icon: CalendarCheck2 },
     { name: "Data Intern", href: "/admin/intern", icon: Users },
     { name: "Profil Admin", href: "/admin/profil", icon: UserCircle },
   ];
