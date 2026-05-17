@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-<<<<<<< HEAD
 export default function AdminDashboard() {
   const router = useRouter()
   const [error, setError] = useState("")
@@ -35,9 +36,6 @@ export default function AdminDashboard() {
       setLoading(false)
     }
   }
-=======
-export default function AdminDashboardPage() {
->>>>>>> layout-component
   return (
     <div className="space-y-6">
       {/* Bagian Top Informasi / Judul */}

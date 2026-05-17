@@ -1,10 +1,9 @@
-<<<<<<< HEAD
 'use client'
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export default function AdminDashboard() {
+export default function internDashboardPage() {
   const router = useRouter()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -37,18 +36,6 @@ export default function AdminDashboard() {
     }
   }
   return (
-    <main>
-      <h1>Hello Dashboard</h1>
-      <button onClick={handleLogout}>Logout</button>
-    </main>
-  )
-=======
-"use client";
-
-import React from "react";
-
-export default function InternDashboardPage() {
-  return (
     <div className="space-y-6">
       {/* Bagian Top Informasi / Judul */}
       <div className="flex flex-col gap-1">
@@ -74,7 +61,7 @@ export default function InternDashboardPage() {
           </span>
         </div>
       </div>
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
->>>>>>> layout-component
 }

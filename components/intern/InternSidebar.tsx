@@ -28,9 +28,9 @@ export function InternSidebar() {
   // Sesuai request: dashboard, absen, logbook, dan profil
   const menuItems = [
     { name: "Dashboard", href: "/intern/dashboard", icon: Home },
-    { name: "Presensi Harian", href: "/intern/absensi", icon: CalendarCheck2 },
+    { name: "Presensi Harian", href: "/intern/attendance", icon: CalendarCheck2 },
     { name: "Isi Logbook", href: "/intern/logbook", icon: FileEdit },
-    { name: "Profil Saya", href: "/intern/profil", icon: UserCircle },
+    { name: "Profil Saya", href: "/intern/profile", icon: UserCircle },
   ];
 
   return (
