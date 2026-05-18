@@ -8,6 +8,15 @@ async function main() {
   const psdk = await prisma.division.findUnique({
     where: { name: "PSDK" },
   });
+  const yankes = await prisma.division.findUnique({
+    where: { name: "Pelayanan Kesehatan" },
+  });
+  const farmasi = await prisma.division.findUnique({
+    where: { name: "Farmasi" },
+  });
+  const p2k = await prisma.division.findUnique({
+    where: { name: "P2K" },
+  });
 
   // Password
   const hashedPassword = await bcrypt.hash("password123", 10);
