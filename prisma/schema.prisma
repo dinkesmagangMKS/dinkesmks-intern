@@ -58,6 +58,7 @@ model InternProfile {
   end_date          DateTime?
   division_id       String?
   finished_early_at DateTime?
+  files_purged_at   DateTime?
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt
 

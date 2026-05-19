@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import type { InternWithStatus } from "@/types"
+import Link from "next/link"
 
 export default function InternPage() {
-  // STATE
   const [loading, setLoading] = useState(true)
   const [interns, setInterns] = useState<InternWithStatus[]>([])
   const [divisions, setDivisions] = useState<{ id: string; name: string }[]>([])
@@ -82,14 +82,11 @@ export default function InternPage() {
       setLoading(false)
     }
   }
+  
+    useEffect(() => {
+      fetchInterns()
+    }, [filterDivisi])  // saat filter divisi berubah
 
-  useEffect(() => {
-    fetchInterns()
-  }, [])  // saat pertama load
-
-  useEffect(() => {
-    fetchInterns()
-  }, [filterDivisi])  // saat filter divisi berubah
 
   // FILTER
   const filteredInterns = interns.filter((intern) => {
@@ -217,6 +214,13 @@ export default function InternPage() {
                     >
                       {intern.status}
                     </span>
+
+                    <Link
+                      href={`/admin/intern/${intern.id}`}
+                      className="rounded-lg border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 transition"
+                    >
+                      Detail
+                    </Link>
                   </div>
                 </div>
               ))}
