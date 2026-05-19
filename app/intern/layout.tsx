@@ -27,8 +27,8 @@ export default function InternLayout({ children }: { children: React.ReactNode }
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 p-8">
         <div className="space-y-4 w-full max-w-sm">
-          <Skeleton className="h-8 w-[200px] bg-slate-200" />
-          <Skeleton className="h-4 w-[250px] bg-slate-200" />
+          <Skeleton className="h-8 w-50 bg-slate-200" />
+          <Skeleton className="h-4 w-62.5 bg-slate-200" />
         </div>
       </div>
     );
