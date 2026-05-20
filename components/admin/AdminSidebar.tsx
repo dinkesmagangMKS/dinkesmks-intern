@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   CalendarCheck2, 
@@ -20,10 +20,14 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useState } from "react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
+  const router = useRouter()
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   // Sesuai request: dashboard, absen, intern, dan profile
   const menuItems = [
@@ -32,6 +36,34 @@ export function AdminSidebar() {
     { name: "Data Intern", href: "/admin/intern", icon: Users },
     { name: "Profil Admin", href: "/admin/profil", icon: UserCircle },
   ];
+
+  async function handleLogout(e: React.FormEvent) {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      })
+
+      const data = await response.json()
+
+      console.log("Response:", response.ok, data)
+      
+      if (!response.ok) {
+        setError(data.error)
+        return
+      }
+
+      router.push("/login")
+
+    } catch {
+      setError("Terjadi kesalahan. Periksa koneksi internetmu.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <Sidebar className="border-r border-slate-200 bg-white text-slate-800">
@@ -85,7 +117,7 @@ export function AdminSidebar() {
             <span className="text-[10px] text-slate-400 truncate">Super Admin</span>
           </div>
           <button 
-            onClick={() => console.log("Admin Logout")}
+            onClick={handleLogout}
             className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors shrink-0"
           >
             <LogOut className="h-4 w-4" />

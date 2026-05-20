@@ -12,7 +12,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // 🔒 PROTEKSI ROUTE: Simulasi pengecekan session/role user
     // Ganti dengan logic aslimu nanti (misal: dari NextAuth atau localStorage)
     const userRole = localStorage.getItem("user_role") || "ADMIN"; // Mocking default ke ADMIN untuk dev
 
@@ -29,8 +28,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-100 p-8">
         <div className="space-y-4 w-full max-w-sm">
-          <Skeleton className="h-8 w-[250px] bg-slate-200" />
-          <Skeleton className="h-4 w-[300px] bg-slate-200" />
+          <Skeleton className="h-8 w-62.5 bg-slate-200" />
+          <Skeleton className="h-4 w-75 bg-slate-200" />
         </div>
       </div>
     );
