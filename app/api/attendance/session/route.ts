@@ -30,9 +30,22 @@ export async function GET(request:Request) {
       }
     })
 
+    // Hitung total intern aktif
+    const totalInternAktif = await prisma.user.count({
+      where: {
+        role: "INTERN",
+        profile: {
+          start_date: { lte: new Date() },
+          end_date: { gte: new Date() },
+          finished_early_at: null
+        }
+      }
+    })
+
     const sessionsWithStatus = sessions.map((session) => ({
       ...session,
-      status: getSessionStatus(session)
+      status: getSessionStatus(session),
+      totalIntern: totalInternAktif
     }))
 
     return NextResponse.json(sessionsWithStatus)
@@ -78,11 +91,14 @@ export async function POST (request:Request) {
       )
     }
 
+    const expires = new Date()
+    expires.setHours(18, 0, 0, 0)
+
     const session = await prisma.attendanceSession.create({
       data: {
         date: today,
         code,
-        expires_at: expires_at ? new Date(expires_at) : new Date(Date.now() + 8 * 60 * 60 * 1000),
+        expires_at: expires,
         created_by: user.userId
       }
     })
