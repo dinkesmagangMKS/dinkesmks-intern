@@ -9,33 +9,6 @@ export default function AdminDashboard() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleLogout(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
-
-    try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      })
-
-      const data = await response.json()
-
-      console.log("Response:", response.ok, data)
-      
-      if (!response.ok) {
-        setError(data.error)
-        return
-      }
-
-      router.push("/login")
-
-    } catch {
-      setError("Terjadi kesalahan. Periksa koneksi internetmu.")
-    } finally {
-      setLoading(false)
-    }
-  }
   return (
     <div className="space-y-6">
       {/* Bagian Top Informasi / Judul */}
