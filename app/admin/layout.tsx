@@ -12,18 +12,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Ganti dengan logic aslimu nanti (misal: dari NextAuth atau localStorage)
-    const userRole = localStorage.getItem("user_role") || "ADMIN"; // Mocking default ke ADMIN untuk dev
+    const userRole = localStorage.getItem("user_role") || "ADMIN";
 
     if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
-      // Redirect paksa ke halaman login jika bukan Admin
       router.push("/login");
     } else {
       setIsAuthorized(true);
     }
   }, [router]);
 
-  // Loading screen tipis-tipis saat memverifikasi role beneran
   if (!isAuthorized) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-100 p-8">
@@ -37,9 +34,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-100">
+      <div className="flex h-screen w-full bg-slate-100">
         <AdminSidebar />
-        <div className="flex flex-1 flex-col min-w-0">
+        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
           <AdminHeader />
           <main className="flex-1 p-6 overflow-y-auto">
             {children}

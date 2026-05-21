@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { InternSidebar } from "@/components/intern/InternSidebar";
 import { InternHeader } from "@/components/intern/InternHeader";
-import { InternBottomNav } from "@/components/intern/InternBottomNav"; // Panggil komponen bottom nav mobile
+import { InternBottomNav } from "@/components/intern/InternBottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InternLayout({ children }: { children: React.ReactNode }) {
@@ -13,8 +13,7 @@ export default function InternLayout({ children }: { children: React.ReactNode }
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // 🔒 PROTEKSI ROUTE: Hanya boleh diakses oleh INTERN
-    const userRole = localStorage.getItem("user_role") || "INTERN"; // Mocking default ke INTERN untuk dev
+    const userRole = localStorage.getItem("user_role") || "INTERN";
 
     if (userRole !== "INTERN") {
       router.push("/login");
@@ -36,20 +35,17 @@ export default function InternLayout({ children }: { children: React.ReactNode }
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-50 pb-16 md:pb-0">
-        {/* 1. Navigasi Samping: Otomatis disembunyikan shadcn di layar mobile, aktif di desktop */}
+      <div className="flex h-screen w-full bg-slate-50">
         <InternSidebar />
-        
-        <div className="flex flex-1 flex-col min-w-0">
-          {/* 2. Top Header */}
+
+        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
           <InternHeader />
-          
-          <main className="flex-1 p-6 overflow-y-auto">
+
+          <main className="flex-1 p-6 overflow-y-auto pb-16 md:pb-6">
             {children}
           </main>
         </div>
 
-        {/* 3. Navigasi Bawah: Khusus layar Mobile (md:hidden otomatis dikelola di dalam komponennya) */}
         <InternBottomNav />
       </div>
     </SidebarProvider>
