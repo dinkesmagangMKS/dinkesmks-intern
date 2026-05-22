@@ -34,7 +34,7 @@ export function AdminSidebar() {
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Data Absensi", href: "/admin/attendance", icon: CalendarCheck2 },
     { name: "Data Intern", href: "/admin/intern", icon: Users },
-    { name: "Profil Admin", href: "/admin/profil", icon: UserCircle },
+    { name: "Profil Admin", href: "/admin/profile", icon: UserCircle },
   ];
 
   async function handleLogout() {
