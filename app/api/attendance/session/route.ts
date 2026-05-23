@@ -61,25 +61,26 @@ export async function GET(request:Request) {
 
 export async function POST (request:Request) {
   try {
-    const { expires_at } = await request.json()
+    const { date } = await request.json()
     const user = await getSessionUser()
     const code = nanoid(6).toUpperCase()
-    const today = new Date()
-
+    const now = new Date()
+    const todayStr = now.toLocaleDateString("en-CA")
+    const today = new Date(todayStr + "T00:00:00+08:00")
+    const tomorrowStr = new Date(new Date(date + "T12:00:00+08:00").getTime() + 24 * 60 * 60 * 1000).toLocaleDateString("en-CA")
+    
     if (!user || user.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
   
-    today.setHours(0, 0, 0, 0)
+    if (!date) today.setHours(0, 0, 0, 0)
   
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
   
     const existingSession = await prisma.attendanceSession.findFirst({
       where: {
         date: {
-          gte: today,
-          lt: tomorrow
+          gte: new Date(todayStr + "T00:00:00+08:00"),
+          lt: new Date(tomorrowStr + "T00:00:00+08:00")
         }
       }
     })
@@ -91,12 +92,11 @@ export async function POST (request:Request) {
       )
     }
 
-    const expires = new Date()
-    expires.setHours(18, 0, 0, 0)
+    const expires = new Date(todayStr + "T17:30:00+08:00")
 
     const session = await prisma.attendanceSession.create({
       data: {
-        date: today,
+        date: new Date(todayStr + "T12:00:00+08:00"),
         code,
         expires_at: expires,
         created_by: user.userId

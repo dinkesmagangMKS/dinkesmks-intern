@@ -117,6 +117,7 @@ export default function InternAttendancePage() {
       setLoading(true)
       const res = await fetch("/api/attendance/me")
       const result = await res.json()
+      console.log("client result:", result)
       setData(result)
     } catch (e) {
       console.error(e)
@@ -215,6 +216,8 @@ export default function InternAttendancePage() {
           </div>
         </div>
 
+        
+
         {/*  SUCCESS MESSAGE  */}
         {message && (
           <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-700">
@@ -238,7 +241,7 @@ export default function InternAttendancePage() {
 
               <div className="p-4">
                 {/* Tidak ada sesi */}
-                {!todaySession && (
+                {!todaySession && !todayAttendance && new Date() > new Date(todaySession.expires_at) &&(
                   <div className="flex items-center gap-2 text-zinc-400 py-4">
                     <Info className="h-4 w-4 shrink-0" />
                     <p className="text-sm">Tidak ada sesi absensi hari ini.</p>
@@ -246,7 +249,7 @@ export default function InternAttendancePage() {
                 )}
 
                 {/* Ada sesi, belum absen */}
-                {todaySession && !todayAttendance && (
+                {todaySession && !todayAttendance && new Date() <= new Date(todaySession.expires_at) && (
                   <div className="space-y-3">
                     <p className="text-xs text-zinc-400">
                       Sesi aktif · Masukkan kode untuk hadir

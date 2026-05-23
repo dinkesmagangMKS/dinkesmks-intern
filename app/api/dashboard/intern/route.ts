@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getInternStatus } from "@/utils/intern"
 import { NextResponse } from "next/server"
 
 export async function GET() {
@@ -15,9 +16,7 @@ export async function GET() {
 
     // Sesi hari ini
     const todaySession = await prisma.attendanceSession.findFirst({
-      where: {
-        date: new Date(todayStr + "T00:00:00.000Z")
-      }
+      where: { date: new Date(todayStr + "T00:00:00.000Z") }
     })
 
     // Attendance hari ini
@@ -32,19 +31,43 @@ export async function GET() {
         })
       : null
 
+    // Profil intern
+    const profile = await prisma.internProfile.findUnique({
+      where: { user_id: user.userId }
+    })
 
+    // Statistik kehadiran
+    const sessions = await prisma.attendanceSession.findMany({
+      where: {
+        date: {
+          gte: profile?.start_date ?? undefined,
+          lte: profile?.finished_early_at ?? profile?.end_date ?? undefined
+        }
+      }
+    })
 
-    // Riwayat semua attendance
-    const history = await prisma.attendance.findMany({
+    const attendances = await prisma.attendance.findMany({
+      where: { user_id: user.userId }
+    })
+
+    const totalSesi = sessions.length
+    const totalHadir = attendances.filter(a => a.status === "HADIR").length
+    const totalIzin = attendances.filter(a => a.status === "IZIN").length
+    const totalAbsen = totalSesi - totalHadir - totalIzin
+
+    // Logbook terakhir
+    const logbookTerakhir = await prisma.logbook.findFirst({
       where: { user_id: user.userId },
-      include: { session: true },
-      orderBy: { session: { date: "desc" } }
+      orderBy: { date: "desc" }
     })
 
     return NextResponse.json({
       todaySession,
       todayAttendance,
-      history
+      totalHadir,
+      totalIzin,
+      totalAbsen,
+      logbookTerakhir
     })
 
   } catch (error) {

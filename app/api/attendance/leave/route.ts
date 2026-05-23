@@ -31,15 +31,12 @@ export async function POST(request:Request) {
       )
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const now = new Date()
+    const todayStr = now.toLocaleDateString("en-CA")
 
     const session = await prisma.attendanceSession.findFirst({
       where: {
-        date: { gte: today, lt: tomorrow }
+        date: new Date(todayStr + "T00:00:00.000Z")
       }
     })
 

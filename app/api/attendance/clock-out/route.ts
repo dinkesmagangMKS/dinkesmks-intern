@@ -10,17 +10,14 @@ export async function PATCH(request:Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const now = new Date()
+    const todayStr = now.toLocaleDateString("en-CA")
 
     const attendance = await prisma.attendance.findFirst({
       where: {
         user_id: user.userId,
         session: {
-          date: { gte: today, lt: tomorrow }
+          date: new Date(todayStr + "T00:00:00.000Z")
         }
       }
     })
