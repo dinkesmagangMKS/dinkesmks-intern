@@ -2,6 +2,7 @@ import { getSessionUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { getInternStatus } from "@/utils/intern"
 import { prisma } from "@/lib/prisma";
+import { getTodayUTC } from "@/utils/date";
 
 export async function POST(request:Request) {
   try {
@@ -24,12 +25,11 @@ export async function POST(request:Request) {
       )
     }
 
-    const now = new Date()
-    const todayStr = now.toLocaleDateString("en-CA")
+    const today = getTodayUTC()
 
     const session = await prisma.attendanceSession.findFirst({
       where: {
-        date: new Date(todayStr + "T00:00:00.000Z")
+        date: new Date(today)
       }
     })
 

@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTodayUTC } from "@/utils/date"
 import { NextResponse } from "next/server"
 
 export async function GET() {
@@ -11,12 +12,11 @@ export async function GET() {
     }
 
     const now = new Date()
-    const todayStr = now.toLocaleDateString("en-CA")
-    const todayDate = new Date(todayStr + "T00:00:00.000Z")
+    const today = getTodayUTC()
 
     // Sesi hari ini
     const todaySession = await prisma.attendanceSession.findFirst({
-      where: { date: todayDate },
+      where: { date: today },
       include: { attendances: true }
     })
 
@@ -50,7 +50,7 @@ export async function GET() {
         attendances: {
           where: {
             session: {
-              date: new Date(todayStr + "T00:00:00.000Z")
+              date: new Date(today)
             }
           }
         }
@@ -86,7 +86,7 @@ export async function GET() {
           include: {
             attendances: {
               where: {
-                session: { date: todayDate }
+                session: { date: today }
               }
             },
             profile: true

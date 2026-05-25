@@ -103,7 +103,6 @@ export default function OnboardingPage() {
 
       setMessage("Onboarding berhasil!")
       router.push("/intern/dashboard")
-      console.log(result)
     } catch (error: any) {
       setMessage(error.message)
     } finally {

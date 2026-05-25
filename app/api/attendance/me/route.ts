@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTodayUTC } from "@/utils/date"
 import { NextResponse } from "next/server"
 
 export async function GET() {
@@ -10,13 +11,12 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const now = new Date()
-    const todayStr = now.toLocaleDateString("en-CA")
+    const today = getTodayUTC()
 
     // Sesi hari ini
     const todaySession = await prisma.attendanceSession.findFirst({
       where: {
-        date: new Date(todayStr + "T00:00:00.000Z")
+        date: new Date(today)
       }
     })
 

@@ -117,7 +117,6 @@ export default function InternAttendancePage() {
       setLoading(true)
       const res = await fetch("/api/attendance/me")
       const result = await res.json()
-      console.log("client result:", result)
       setData(result)
     } catch (e) {
       console.error(e)

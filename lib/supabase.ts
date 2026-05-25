@@ -13,8 +13,6 @@ export async function uploadFile(
     .from("intern-files")
     .upload(path, file)
 
-  console.log("UPLOAD DATA:", data)
-  console.log("UPLOAD ERROR:", error)
 
   if (error) {
     throw error
