@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTodayUTC } from "@/utils/date"
 import { NextResponse } from "next/server"
 
 export async function PATCH(request:Request) {
@@ -10,17 +11,13 @@ export async function PATCH(request:Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const today = getTodayUTC()
 
     const attendance = await prisma.attendance.findFirst({
       where: {
         user_id: user.userId,
         session: {
-          date: { gte: today, lt: tomorrow }
+          date: new Date(today)
         }
       }
     })

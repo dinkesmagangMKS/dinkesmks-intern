@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getTodayUTC, getTodayString } from "@/utils/date";
 import { AttendanceSession } from "@prisma/client";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
@@ -10,7 +11,7 @@ function getSessionStatus(session: AttendanceSession) {
   return "AKTIF"
 }
 
-export async function GET(request:Request) {
+export async function GET(request: Request) {
   try {
     const user = await getSessionUser()
 
@@ -30,7 +31,6 @@ export async function GET(request:Request) {
       }
     })
 
-    // Hitung total intern aktif
     const totalInternAktif = await prisma.user.count({
       where: {
         role: "INTERN",
@@ -59,31 +59,31 @@ export async function GET(request:Request) {
   }
 }
 
-export async function POST (request:Request) {
+export async function POST(request: Request) {
   try {
-    const { expires_at } = await request.json()
+    const { date } = await request.json()
     const user = await getSessionUser()
-    const code = nanoid(6).toUpperCase()
-    const today = new Date()
 
     if (!user || user.role !== "SUPER_ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-  
-    today.setHours(0, 0, 0, 0)
-  
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-  
+
+    if (!date) {
+      return NextResponse.json(
+        { error: "Tanggal wajib dikirim dari client." },
+        { status: 400 }
+      )
+    }
+
+    const code = nanoid(6).toUpperCase()
+
+    const todayStr = getTodayString()
+    const today = getTodayUTC()
+
     const existingSession = await prisma.attendanceSession.findFirst({
-      where: {
-        date: {
-          gte: today,
-          lt: tomorrow
-        }
-      }
+      where: { date: today }
     })
-  
+
     if (existingSession) {
       return NextResponse.json(
         { error: "Sesi absensi untuk hari ini sudah ada." },
@@ -91,8 +91,7 @@ export async function POST (request:Request) {
       )
     }
 
-    const expires = new Date()
-    expires.setHours(18, 0, 0, 0)
+    const expires = new Date(todayStr + "T17:30:00+08:00")
 
     const session = await prisma.attendanceSession.create({
       data: {
@@ -104,6 +103,7 @@ export async function POST (request:Request) {
     })
 
     return NextResponse.json(session, { status: 201 })
+
   } catch (error) {
     console.error(error)
     return NextResponse.json(

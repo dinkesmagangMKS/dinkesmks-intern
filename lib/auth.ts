@@ -1,18 +1,20 @@
 import jwt from "jsonwebtoken"
 import { cookies } from "next/headers"
 import type { JwtPayload } from "@/types"
+import { getEnv } from "./env"
 
-const SECRET = process.env.JWT_SECRET!
 const COOKIE_NAME = "ims_token"
 
 // BUAT TOKEN
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, SECRET, { expiresIn: "8h" })
+  const { JWT_SECRET } = getEnv()
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" })
 }
 
 // VERIFIKASI TOKEN
 export function verifyToken(token: string): JwtPayload {
-  return jwt.verify(token, SECRET) as JwtPayload
+  const { JWT_SECRET } = getEnv()
+  return jwt.verify(token, JWT_SECRET) as JwtPayload
 }
 
 // COOKIE HELPERS

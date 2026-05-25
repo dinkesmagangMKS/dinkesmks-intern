@@ -2,32 +2,19 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
-interface InternProfile {
-  full_name: string;
-  major: string;
-}
 
 export function InternHeader() {
-  const [profile, setProfile] = useState<InternProfile | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function getProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("interns")
-        .select("full_name, major")
-        .eq("id", user.id)
-        .single();
-      if (data) setProfile(data);
-    }
-    getProfile();
+    fetch("/api/profile")
+      .then(res => res.json())
+      .then(data => setUser(data))
+      .catch(() => {})
   }, []);
 
-  const initials = profile?.full_name
-    ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+  const initials = user?.name
+    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "IN";
 
   const formattedDate = new Date().toLocaleDateString("id-ID", {
@@ -52,14 +39,14 @@ export function InternHeader() {
 
       {/* KANAN */}
       <div className="flex items-center gap-3">
-        <div className="h-5 w-[1px] bg-white/20" />
+        <div className="h-5 w-px bg-white/20" />
         <div className="flex items-center gap-2.5">
           <div className="hidden md:flex flex-col text-right">
-            <span className="text-xs font-semibold text-white truncate max-w-[120px]">
-              {profile?.full_name ?? "Memuat..."}
+            <span className="text-xs font-semibold text-white truncate max-w-30">
+              {user?.name ?? "Memuat..."}
             </span>
             <span className="text-[10px] font-medium text-white/60">
-              {profile?.major ?? ""}
+              {user?.profile?.major ?? ""}
             </span>
           </div>
           <div className="h-8 w-8 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-sm shadow-sm">

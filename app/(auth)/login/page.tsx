@@ -25,8 +25,6 @@ export default function LoginPage() {
 
       const data = await response.json()
 
-      console.log("Response:", response.ok, data)
-
       if (!response.ok) {
         setError(data.error)
         return

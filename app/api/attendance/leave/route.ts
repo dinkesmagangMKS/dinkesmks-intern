@@ -2,6 +2,7 @@ import { getSessionUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { getInternStatus } from "@/utils/intern"
 import { prisma } from "@/lib/prisma";
+import { getTodayUTC } from "@/utils/date";
 
 export async function POST(request:Request) {
   try {
@@ -31,15 +32,11 @@ export async function POST(request:Request) {
       )
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const today = getTodayUTC()
 
     const session = await prisma.attendanceSession.findFirst({
       where: {
-        date: { gte: today, lt: tomorrow }
+        date: new Date(today)
       }
     })
 

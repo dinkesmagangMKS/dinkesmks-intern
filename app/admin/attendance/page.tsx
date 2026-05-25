@@ -123,7 +123,9 @@ export default function AdminAttendancePage() {
       const res = await fetch("/api/attendance/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({
+          date: new Date().toLocaleDateString("en-CA")
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error); return }

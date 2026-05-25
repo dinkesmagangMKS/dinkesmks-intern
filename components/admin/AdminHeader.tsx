@@ -5,15 +5,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
-interface AdminProfile {
-  full_name: string;
-  role: string;
-}
 
 export function AdminHeader() {
-  const [profile, setProfile] = useState<AdminProfile | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   const formattedDate = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
@@ -23,22 +17,20 @@ export function AdminHeader() {
   });
 
   useEffect(() => {
-    async function getProfile() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, role")
-        .eq("id", user.id)
-        .single();
-      if (data) setProfile(data);
-    }
-    getProfile();
+    fetch("/api/profile")
+      .then(res => res.json())
+      .then(data => setUser(data))
+      .catch(() => {})
   }, []);
 
-  const initials = profile?.full_name
-    ? profile.full_name.charAt(0).toUpperCase()
+  const initials = user?.name
+    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "A";
+
+  const roleLabel: Record<string, string> = {
+    SUPER_ADMIN: "Super Admin",
+    ADMIN: "Admin",
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full h-16 border-b border-[#5a8a2d]/20 bg-white flex items-center justify-between px-4 shrink-0 shadow-sm">
@@ -65,15 +57,16 @@ export function AdminHeader() {
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
         </Button>
 
-        <div className="h-5 w-[1px] bg-[#5a8a2d]/20" />
+        <div className="h-5 w-px bg-[#5a8a2d]/20" />
 
         <div className="flex items-center gap-2.5">
           <div className="hidden md:flex flex-col text-right">
             <span className="text-xs font-semibold text-slate-800">
-              {profile?.full_name ?? "Memuat..."}
+              {user?.name ?? "Memuat..."}
             </span>
             <span className="text-[10px] font-medium text-[#5a8a2d] uppercase">
-              {profile?.role ?? ""}
+              {roleLabel[user?.role] ?? ""}
+              {user?.division?.name ? ` · ${user.division.name}` : ""}
             </span>
           </div>
           <div className="h-8 w-8 rounded-full bg-[#2d5a1b] text-white flex items-center justify-center font-bold text-sm shadow-sm">
