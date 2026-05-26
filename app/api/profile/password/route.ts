@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { validatePassword } from "@/utils/password";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
@@ -33,6 +34,14 @@ export async function PATCH(request:Request) {
     if (!passwordMatch) {
       return NextResponse.json(
         { error: "Password lama tidak sesuai" },
+        { status: 400 }
+      )
+    }
+
+    const { valid, errors } = validatePassword(new_password)
+    if (!valid) {
+      return NextResponse.json(
+        { error: errors.join(", ") },
         { status: 400 }
       )
     }
