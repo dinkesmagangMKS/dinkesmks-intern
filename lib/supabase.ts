@@ -15,28 +15,37 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1MB
 
 // Upload file — return public URL
-export async function uploadFile(file: File, path: string): Promise<string> {
-  // Validasi MIME type
+export async function uploadFile(
+  file: File,
+  path: string
+): Promise<string> {
+
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    throw new Error("Tipe file tidak didukung. Gunakan JPG, PNG, atau WebP.")
+    throw new Error("Tipe file tidak didukung.")
   }
 
-  // Validasi ukuran setelah kompresi
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error("Ukuran file terlalu besar. Maksimal 1MB.")
+    throw new Error("Ukuran file terlalu besar.")
   }
 
-  const { error } = await supabase.storage
+  const { data, error } = await supabase.storage
     .from("intern-files")
-    .upload(path, file, { upsert: true })
+    .upload(path, file, {
+      upsert: true,
+    })
 
-  if (error) throw new Error(error.message)
+  console.log("UPLOAD DATA:", data)
+  console.log("UPLOAD ERROR:", error)
 
-  const { data } = supabase.storage
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  const { data: publicUrlData } = supabase.storage
     .from("intern-files")
     .getPublicUrl(path)
 
-  return data.publicUrl
+  return publicUrlData.publicUrl
 }
 
 // Hapus file

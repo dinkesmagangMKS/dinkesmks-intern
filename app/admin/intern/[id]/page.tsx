@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { AlertCircle, CheckCircle2, KeyRound } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 function formatDurasi(menit: number): string {
   if (!menit) return "-"
@@ -61,6 +67,12 @@ export default function InternDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
+  const [showResetModal, setShowResetModal] = useState(false)
+  const [resetPassword, setResetPassword] = useState("")
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetError, setResetError] = useState("")
+  const [resetMessage, setResetMessage] = useState("")
+
   useEffect(() => {
     const fetchIntern = async () => {
       try {
@@ -116,6 +128,31 @@ export default function InternDetailPage() {
       setDeleteError("Terjadi kesalahan.")
     } finally {
       setDeleteLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetLoading(true)
+    setResetError("")
+    try {
+      const res = await fetch(`/api/interns/${id}/reset-password`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_password: resetPassword })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setResetError(data.error)
+        return
+      }
+      setShowResetModal(false)
+      setResetPassword("")
+      setResetMessage("Password berhasil direset. Intern akan diminta ganti password saat login.")
+    } catch {
+      setResetError("Terjadi kesalahan.")
+    } finally {
+      setResetLoading(false)
     }
   }
 
@@ -195,6 +232,16 @@ export default function InternDetailPage() {
               Tandai Selesai
             </button>
           )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setResetError(""); setShowResetModal(true) }}
+            className="h-8 text-xs border-zinc-200 text-zinc-600 hover:bg-zinc-50 gap-1.5"
+          >
+            <KeyRound className="h-3 w-3" />
+            Reset Password
+          </Button>
           
           {intern.status === "PENDING" && (
             <button
@@ -208,6 +255,13 @@ export default function InternDetailPage() {
             </button>
           )}
         </div>
+
+        {resetMessage && (
+          <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-700">
+            <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+            {resetMessage}
+          </div>
+        )}
 
         {/* PROFILE CARD */}
         <div className="rounded-2xl border border-zinc-200 bg-white p-6">
@@ -433,6 +487,72 @@ export default function InternDetailPage() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={showResetModal}
+        onOpenChange={open => {
+          setShowResetModal(open)
+          if (!open) { setResetError(""); setResetPassword("") }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm rounded-xl p-5">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
+                <KeyRound className="h-3.5 w-3.5 text-zinc-700" />
+              </div>
+              Reset Password
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400 mt-1">
+              Intern akan diminta ganti password saat login berikutnya.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleResetPassword} className="space-y-3 mt-1">
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-zinc-600">
+                Password Sementara
+              </Label>
+              <Input
+                type="password"
+                placeholder="Minimal 8 karakter"
+                value={resetPassword}
+                onChange={e => setResetPassword(e.target.value)}
+                className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                required
+              />
+            </div>
+
+            {resetError && (
+              <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
+                <AlertCircle className="h-3.5 w-3.5" />
+                <AlertDescription className="text-xs">{resetError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1 h-8 text-xs border-zinc-200"
+                onClick={() => setShowResetModal(false)}
+                disabled={resetLoading}
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                disabled={resetLoading}
+              >
+                {resetLoading ? "Mereset..." : "Reset Password"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* MODAL DELETE */}
       {showDeleteModal && (
