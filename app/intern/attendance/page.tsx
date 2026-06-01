@@ -266,7 +266,7 @@ export default function InternAttendancePage() {
                       <Input
                         placeholder="Kode absensi"
                         value={code}
-                        onChange={e => setCode(e.target.value)}
+                        onChange={e => setCode(e.target.value.toUpperCase())}
                         className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 font-mono tracking-widest"
                         required
                       />

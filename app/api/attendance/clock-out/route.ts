@@ -29,6 +29,13 @@ export async function PATCH(request:Request) {
       )
     }
 
+    if (attendance.status !== "HADIR") {
+      return NextResponse.json(
+        { error: "Hanya intern yang hadir yang bisa clock out." },
+        { status: 400 }
+      )
+    }
+
     if (attendance.clock_out_at) {
       return NextResponse.json(
         { error: "Sudah absen hari ini." },
