@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from "next/image"
 
 import {
   User,
@@ -278,10 +279,12 @@ export default function InternProfilePage() {
                 {/* Avatar + tombol ganti foto */}
                 <div className="relative shrink-0">
                   {profile?.photo_url ? (
-                    <img
+                    <Image
                       src={profile.photo_url}
                       alt={user?.name}
-                      className="h-14 w-14 rounded-full object-cover border border-zinc-100"
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 rounded-full object-cover"
                     />
                   ) : (
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 text-lg font-semibold">

@@ -34,19 +34,29 @@ export async function GET(
       status: getInternStatus(intern.profile)
     }
 
-    // Query sesi dan attendance
-    const sessions = await prisma.attendanceSession.findMany({
-      where: {
-        date: {
-          gte: intern.profile?.start_date ?? undefined,
-          lte: intern.profile?.finished_early_at ?? intern.profile?.end_date ?? undefined
+    // Query sisanya jalan paralel
+    const [sessions, attendances, riwayatAttendance, riwayatLogbook] = await Promise.all([
+      prisma.attendanceSession.findMany({
+        where: {
+          date: {
+            gte: intern.profile?.start_date ?? undefined,
+            lte: intern.profile?.finished_early_at ?? intern.profile?.end_date ?? undefined
+          }
         }
-      }
-    })
-
-    const attendances = await prisma.attendance.findMany({
-      where: { user_id: id }
-    })
+      }),
+      prisma.attendance.findMany({
+        where: { user_id: id }
+      }),
+      prisma.attendance.findMany({
+        where: { user_id: id },
+        include: { session: true },
+        orderBy: { session: { date: "desc" } }
+      }),
+      prisma.logbook.findMany({
+        where: { user_id: id },
+        orderBy: { date: "desc" }
+      })
+    ])
 
     const totalSesi = sessions.length
     const totalHadir = attendances.filter(a => a.status === "HADIR").length
@@ -73,19 +83,6 @@ export async function GET(
           }, 0) / hadirDenganClockIn.length
         )
       : null
-
-    // Riwayat attendance lengkap
-    const riwayatAttendance = await prisma.attendance.findMany({
-      where: { user_id: id },
-      include: { session: true },
-      orderBy: { session: { date: "desc" } }
-    })
-
-    // Riwayat logbook
-    const riwayatLogbook = await prisma.logbook.findMany({
-      where: { user_id: id },
-      orderBy: { date: "desc" }
-    })
 
     // Return semua data
     return NextResponse.json({

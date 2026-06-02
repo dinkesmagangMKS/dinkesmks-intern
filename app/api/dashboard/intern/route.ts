@@ -14,52 +14,50 @@ export async function GET() {
 
     const today = getTodayUTC()
 
-    // Sesi hari ini
-    const todaySession = await prisma.attendanceSession.findFirst({
-      where: { date: new Date(today) }
-    })
+    const [todaySession, profile, logbookTerakhir] = await Promise.all([
+      prisma.attendanceSession.findFirst({
+        where: { date: getTodayUTC() }
+      }),
+      prisma.internProfile.findUnique({
+        where: { user_id: user.userId }
+      }),
+      prisma.logbook.findFirst({
+        where: { user_id: user.userId },
+        orderBy: { date: "desc" }
+      })
+    ])
 
-    // Attendance hari ini
+    // todayAttendance bergantung ke todaySession — tetap sequential
     const todayAttendance = todaySession
-      ? await prisma.attendance.findUnique({
-          where: {
-            user_id_attendance_session_id: {
-              user_id: user.userId,
-              attendance_session_id: todaySession.id
-            }
+      ? await prisma.attendance.findUnique({ 
+        where: {
+          user_id_attendance_session_id: {
+            user_id: user.userId,
+            attendance_session_id: todaySession.id
           }
-        })
+        }
+      })
       : null
 
-    // Profil intern
-    const profile = await prisma.internProfile.findUnique({
-      where: { user_id: user.userId }
-    })
-
-    // Statistik kehadiran
-    const sessions = await prisma.attendanceSession.findMany({
-      where: {
-        date: {
-          gte: profile?.start_date ?? undefined,
-          lte: profile?.finished_early_at ?? profile?.end_date ?? undefined
+    // sessions dan attendances tidak bergantung satu sama lain — paralel
+    const [sessions, attendances] = await Promise.all([
+      prisma.attendanceSession.findMany({
+        where: {
+          date: {
+            gte: profile?.start_date ?? undefined,
+            lte: profile?.finished_early_at ?? profile?.end_date ?? undefined
+          }
         }
-      }
-    })
-
-    const attendances = await prisma.attendance.findMany({
-      where: { user_id: user.userId }
-    })
+      }),
+      prisma.attendance.findMany({
+        where: { user_id: user.userId }
+      })
+    ])
 
     const totalSesi = sessions.length
     const totalHadir = attendances.filter(a => a.status === "HADIR").length
     const totalIzin = attendances.filter(a => a.status === "IZIN").length
     const totalAbsen = totalSesi - totalHadir - totalIzin
-
-    // Logbook terakhir
-    const logbookTerakhir = await prisma.logbook.findFirst({
-      where: { user_id: user.userId },
-      orderBy: { date: "desc" }
-    })
 
     return NextResponse.json({
       todaySession,

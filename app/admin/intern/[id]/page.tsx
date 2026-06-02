@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from "next/image"
 
 function formatDurasi(menit: number): string {
   if (!menit) return "-"
@@ -810,10 +811,12 @@ export default function InternDetailPage() {
               {selectedLogbook.description}
             </p>
             {selectedLogbook.documentation && (
-              <img
+              <Image
                 src={selectedLogbook.documentation}
                 alt="Dokumentasi"
-                className="w-full rounded-lg border border-zinc-100 object-cover max-h-64"
+                width={600}
+                height={400}
+                className="w-full max-h-48 object-cover rounded-lg"
                 onError={e => (e.currentTarget.style.display = "none")}
               />
             )}

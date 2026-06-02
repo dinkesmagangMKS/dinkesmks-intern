@@ -28,6 +28,7 @@ import {
   FileImage,
   Trash2,
 } from "lucide-react"
+import Image from "next/image"
 
 // Helpers
 
@@ -82,18 +83,34 @@ export default function LogbookInternPage() {
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState("")
 
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const fetchLogbooks = async () => {
+  const fetchLogbooks = async (cursor?: string) => {
     try {
-      setLoading(true)
-      const res = await fetch("/api/logbooks")
-      const data = await res.json()
-      setLogbooks(data)
+      if (!cursor) setLoading(true)
+      else setLoadingMore(true)
+
+      const url = cursor
+        ? `/api/logbooks?cursor=${cursor}`
+        : "/api/logbooks"
+
+      const res = await fetch(url)
+      const result = await res.json()
+
+      if (cursor) {
+        setLogbooks(prev => [...prev, ...result.data])
+      } else {
+        setLogbooks(result.data)
+      }
+      setNextCursor(result.nextCursor)
     } catch (e) {
       console.error(e)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -365,11 +382,12 @@ export default function LogbookInternPage() {
                     {/* Foto thumbnail */}
                     <div className="shrink-0 mt-0.5">
                       {lb.documentation ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={lb.documentation}
                           alt="Dokumentasi"
-                          className="h-10 w-10 rounded-md object-cover border border-zinc-100"
+                          width={50}
+                          height={50}
+                          className="w-full max-h-48 object-cover rounded-lg"
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-md bg-zinc-100 border border-zinc-100 flex items-center justify-center">
@@ -430,7 +448,19 @@ export default function LogbookInternPage() {
             )}
           </div>
         )}
-
+        {nextCursor && (
+          <div className="px-4 py-3 border-t border-zinc-50">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs border-zinc-200 text-zinc-500"
+              onClick={() => fetchLogbooks(nextCursor)}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Memuat..." : "Muat lebih banyak"}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/*  MODAL EDIT  */}
@@ -478,10 +508,12 @@ export default function LogbookInternPage() {
               />
               {editForm.documentation && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={editForm.documentation}
                   alt="Preview"
-                  className="mt-1.5 w-full max-h-32 object-cover rounded-lg border border-zinc-100"
+                  width={600}
+                  height={400}
+                  className="w-full max-h-48 object-cover rounded-lg"
                   onError={e => (e.currentTarget.style.display = "none")}
                 />
               )}
