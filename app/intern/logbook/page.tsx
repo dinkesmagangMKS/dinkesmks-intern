@@ -3,6 +3,7 @@
 import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import imageCompression from "browser-image-compression"
 import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,8 @@ import {
   CheckCircle2,
   FileImage,
   Trash2,
+  Download,
+  Loader2,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -85,6 +88,7 @@ export default function LogbookInternPage() {
 
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -122,6 +126,44 @@ export default function LogbookInternPage() {
     const t = setTimeout(() => setSubmitMessage(""), 4000)
     return () => clearTimeout(t)
   }, [submitMessage])
+
+  const handleExport = async () => {
+    setExportLoading(true)
+    try {
+      const res = await fetch("/api/logbooks/export")
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error ?? "Gagal mengekspor logbook.")
+      }
+
+      const blob = await res.blob()
+
+      // Extract filename from Content-Disposition header or use fallback
+      const disposition = res.headers.get("Content-Disposition")
+      let filename = "logbook.pdf"
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/)
+        if (match?.[1]) filename = match[1]
+      }
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+
+      toast.success("PDF berhasil diunduh!")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan."
+      toast.error(message)
+    } finally {
+      setExportLoading(false)
+    }
+  }
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
@@ -362,7 +404,23 @@ export default function LogbookInternPage() {
           <div className="rounded-lg border border-zinc-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
               <span className="text-xs font-medium text-zinc-700">Riwayat Logbook</span>
-              <span className="text-[11px] text-zinc-400">{logbooks.length} entri</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-zinc-400">{logbooks.length} entri</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExport}
+                  disabled={exportLoading || logbooks.length === 0}
+                  className="h-6 px-2.5 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-1.5"
+                >
+                  {exportLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Download className="h-3 w-3" />
+                  )}
+                  {exportLoading ? "Mengekspor..." : "Export PDF"}
+                </Button>
+              </div>
             </div>
 
             {loading ? (
