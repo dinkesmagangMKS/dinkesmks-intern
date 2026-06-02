@@ -14,6 +14,13 @@ const ALLOWED_MIME_TYPES = [
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1MB
 
+// Buat helper di lib/supabase.ts
+export function sanitizeFileName(originalName: string): string {
+  const ext = originalName.split(".").pop()?.toLowerCase() ?? "jpg"
+  // Hanya timestamp + ekstensi — tidak ada nama file asli
+  return `${Date.now()}.${ext}`
+}
+
 // Upload file — return public URL
 export async function uploadFile(
   file: File,

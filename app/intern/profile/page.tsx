@@ -23,7 +23,7 @@ import {
   Building2,
 } from "lucide-react"
 import imageCompression from "browser-image-compression"
-import { uploadFile } from "@/lib/supabase"
+import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import { validatePassword } from "@/utils/password"
 
 // Helpers
@@ -225,7 +225,7 @@ export default function InternProfilePage() {
         maxWidthOrHeight: 800,
         useWebWorker: true
       })
-      const fileName = `photos/${Date.now()}-${file.name}`
+      const fileName = `photos/${sanitizeFileName(file.name)}`
       const photoUrl = await uploadFile(compressed, fileName)
 
       // Update ke database langsung

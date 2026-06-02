@@ -74,6 +74,19 @@ export async function GET(
         )
       : null
 
+    // Riwayat attendance lengkap
+    const riwayatAttendance = await prisma.attendance.findMany({
+      where: { user_id: id },
+      include: { session: true },
+      orderBy: { session: { date: "desc" } }
+    })
+
+    // Riwayat logbook
+    const riwayatLogbook = await prisma.logbook.findMany({
+      where: { user_id: id },
+      orderBy: { date: "desc" }
+    })
+
     // Return semua data
     return NextResponse.json({
       ...internWithStatus,
@@ -84,7 +97,9 @@ export async function GET(
         totalAbsen,
         avgDurasi,
         avgClockIn
-      }
+      },
+      riwayatAttendance,
+      riwayatLogbook
     })
 
   } catch (error) {

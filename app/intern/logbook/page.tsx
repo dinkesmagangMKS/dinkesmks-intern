@@ -1,6 +1,6 @@
 "use client"
 
-import { uploadFile } from "@/lib/supabase"
+import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import imageCompression from "browser-image-compression"
 import { useEffect, useRef, useState } from "react"
 
@@ -136,7 +136,7 @@ export default function LogbookInternPage() {
           maxWidthOrHeight: 800,
           useWebWorker: true,
         })
-        const fileName = `logbooks/${Date.now()}-${photo.name}`
+        const fileName = `logbooks/${sanitizeFileName(photo.name)}`
         photoUrl = await uploadFile(compressed, fileName)
       }
 

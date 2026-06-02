@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import imageCompression from "browser-image-compression"
-import { uploadFile } from "@/lib/supabase"
+import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import { validatePassword } from "@/utils/password"
 
 export default function OnboardingPage() {
@@ -45,7 +45,7 @@ export default function OnboardingPage() {
     })
 
     // Buat nama file unik agar tidak bentrok
-    const fileName = `photos/${Date.now()}-${file.name}`
+    const fileName = `photos/${sanitizeFileName(file.name)}`
 
     // Upload ke Supabase Storage
     const photoUrl = await uploadFile(compressed, fileName)
