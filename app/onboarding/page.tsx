@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import imageCompression from "browser-image-compression"
-import { uploadFile } from "@/lib/supabase"
+import { sanitizeFileName, uploadFile } from "@/lib/supabase"
+import { validatePassword } from "@/utils/password"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -24,6 +25,8 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
 
+  const passwordValidation = validatePassword(form.new_password)
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -42,7 +45,7 @@ export default function OnboardingPage() {
     })
 
     // Buat nama file unik agar tidak bentrok
-    const fileName = `photos/${Date.now()}-${file.name}`
+    const fileName = `photos/${sanitizeFileName(file.name)}`
 
     // Upload ke Supabase Storage
     const photoUrl = await uploadFile(compressed, fileName)
@@ -288,6 +291,21 @@ export default function OnboardingPage() {
                 className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
               />
             </div>
+
+            {form.new_password && !passwordValidation.valid && (
+              <ul className="space-y-0.5 mt-1">
+                {passwordValidation.errors.map(err => (
+                  <li key={err} className="text-[11px] text-zinc-400 flex items-center gap-1">
+                    <span className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                    {err}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {form.new_password && passwordValidation.valid && (
+              <p className="text-[11px] text-zinc-400 mt-1">Password kuat</p>
+            )}
           </section>
 
           {/* MESSAGE */}

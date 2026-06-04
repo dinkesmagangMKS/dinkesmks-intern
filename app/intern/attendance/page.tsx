@@ -240,10 +240,18 @@ export default function InternAttendancePage() {
 
               <div className="p-4">
                 {/* Tidak ada sesi */}
-                {!todaySession && !todayAttendance && new Date() > new Date(todaySession.expires_at) &&(
+                {!todaySession && (
                   <div className="flex items-center gap-2 text-zinc-400 py-4">
                     <Info className="h-4 w-4 shrink-0" />
                     <p className="text-sm">Tidak ada sesi absensi hari ini.</p>
+                  </div>
+                )}
+
+                {/* Sesi ada tapi sudah expired */}
+                {todaySession && !todayAttendance && new Date() > new Date(todaySession.expires_at) && (
+                  <div className="flex items-center gap-2 text-zinc-400 py-4">
+                    <Info className="h-4 w-4 shrink-0" />
+                    <p className="text-sm">Sesi absensi hari ini sudah berakhir.</p>
                   </div>
                 )}
 
@@ -258,7 +266,7 @@ export default function InternAttendancePage() {
                       <Input
                         placeholder="Kode absensi"
                         value={code}
-                        onChange={e => setCode(e.target.value)}
+                        onChange={e => setCode(e.target.value.toUpperCase())}
                         className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 font-mono tracking-widest"
                         required
                       />

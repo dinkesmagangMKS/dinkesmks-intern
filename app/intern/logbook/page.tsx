@@ -1,8 +1,9 @@
 "use client"
 
-import { uploadFile } from "@/lib/supabase"
+import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import imageCompression from "browser-image-compression"
 import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,7 +28,10 @@ import {
   CheckCircle2,
   FileImage,
   Trash2,
+  Download,
+  Loader2,
 } from "lucide-react"
+import Image from "next/image"
 
 // Helpers
 
@@ -82,18 +86,35 @@ export default function LogbookInternPage() {
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState("")
 
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const fetchLogbooks = async () => {
+  const fetchLogbooks = async (cursor?: string) => {
     try {
-      setLoading(true)
-      const res = await fetch("/api/logbooks")
-      const data = await res.json()
-      setLogbooks(data)
+      if (!cursor) setLoading(true)
+      else setLoadingMore(true)
+
+      const url = cursor
+        ? `/api/logbooks?cursor=${cursor}`
+        : "/api/logbooks"
+
+      const res = await fetch(url)
+      const result = await res.json()
+
+      if (cursor) {
+        setLogbooks(prev => [...prev, ...result.data])
+      } else {
+        setLogbooks(result.data)
+      }
+      setNextCursor(result.nextCursor)
     } catch (e) {
       console.error(e)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -105,6 +126,44 @@ export default function LogbookInternPage() {
     const t = setTimeout(() => setSubmitMessage(""), 4000)
     return () => clearTimeout(t)
   }, [submitMessage])
+
+  const handleExport = async () => {
+    setExportLoading(true)
+    try {
+      const res = await fetch("/api/logbooks/export")
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error ?? "Gagal mengekspor logbook.")
+      }
+
+      const blob = await res.blob()
+
+      // Extract filename from Content-Disposition header or use fallback
+      const disposition = res.headers.get("Content-Disposition")
+      let filename = "logbook.pdf"
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/)
+        if (match?.[1]) filename = match[1]
+      }
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+
+      toast.success("PDF berhasil diunduh!")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan."
+      toast.error(message)
+    } finally {
+      setExportLoading(false)
+    }
+  }
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
@@ -136,7 +195,7 @@ export default function LogbookInternPage() {
           maxWidthOrHeight: 800,
           useWebWorker: true,
         })
-        const fileName = `logbooks/${Date.now()}-${photo.name}`
+        const fileName = `logbooks/${sanitizeFileName(photo.name)}`
         photoUrl = await uploadFile(compressed, fileName)
       }
 
@@ -345,7 +404,23 @@ export default function LogbookInternPage() {
           <div className="rounded-lg border border-zinc-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
               <span className="text-xs font-medium text-zinc-700">Riwayat Logbook</span>
-              <span className="text-[11px] text-zinc-400">{logbooks.length} entri</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-zinc-400">{logbooks.length} entri</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExport}
+                  disabled={exportLoading || logbooks.length === 0}
+                  className="h-6 px-2.5 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-1.5"
+                >
+                  {exportLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Download className="h-3 w-3" />
+                  )}
+                  {exportLoading ? "Mengekspor..." : "Export PDF"}
+                </Button>
+              </div>
             </div>
 
             {loading ? (
@@ -365,11 +440,12 @@ export default function LogbookInternPage() {
                     {/* Foto thumbnail */}
                     <div className="shrink-0 mt-0.5">
                       {lb.documentation ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={lb.documentation}
                           alt="Dokumentasi"
-                          className="h-10 w-10 rounded-md object-cover border border-zinc-100"
+                          width={50}
+                          height={50}
+                          className="w-full max-h-48 object-cover rounded-lg"
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-md bg-zinc-100 border border-zinc-100 flex items-center justify-center">
@@ -430,7 +506,19 @@ export default function LogbookInternPage() {
             )}
           </div>
         )}
-
+        {nextCursor && (
+          <div className="px-4 py-3 border-t border-zinc-50">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs border-zinc-200 text-zinc-500"
+              onClick={() => fetchLogbooks(nextCursor)}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Memuat..." : "Muat lebih banyak"}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/*  MODAL EDIT  */}
@@ -478,10 +566,12 @@ export default function LogbookInternPage() {
               />
               {editForm.documentation && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={editForm.documentation}
                   alt="Preview"
-                  className="mt-1.5 w-full max-h-32 object-cover rounded-lg border border-zinc-100"
+                  width={600}
+                  height={400}
+                  className="w-full max-h-48 object-cover rounded-lg"
                   onError={e => (e.currentTarget.style.display = "none")}
                 />
               )}

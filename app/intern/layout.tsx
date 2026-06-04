@@ -7,6 +7,7 @@ import { InternSidebar } from "@/components/intern/InternSidebar";
 import { InternHeader } from "@/components/intern/InternHeader";
 import { InternBottomNav } from "@/components/intern/InternBottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function InternLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -48,6 +49,7 @@ export default function InternLayout({ children }: { children: React.ReactNode }
 
         <InternBottomNav />
       </div>
+      <Toaster position="top-center" richColors />
     </SidebarProvider>
   );
 }

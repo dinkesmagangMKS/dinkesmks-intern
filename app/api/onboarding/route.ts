@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser, signToken, setAuthCookie } from "@/lib/auth"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { validatePassword } from "@/utils/password"
 
 export async function POST(request:Request) {
   try {
@@ -42,6 +43,14 @@ export async function POST(request:Request) {
     if (!passwordMatch) {
       return NextResponse.json(
         { error: "Password lama tidak sesuai" },
+        { status: 400 }
+      )
+    }
+
+    const { valid, errors } = validatePassword(password)
+    if (!valid) {
+      return NextResponse.json(
+        { error: errors.join(", ") },
         { status: 400 }
       )
     }

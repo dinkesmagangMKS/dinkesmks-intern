@@ -4,22 +4,51 @@ import { CreateLogbookInput } from "@/types";
 import { getInternStatus } from "@/utils/intern";
 import { NextResponse } from "next/server";
 
-export async function GET(request:Request) {
+export async function GET(request: Request) {
   try {
     const user = await getSessionUser()
 
-    if (!user || (user.role !== "INTERN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user || user.role !== "INTERN") {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
+    const { searchParams } = new URL(request.url)
+
+    const cursor = searchParams.get("cursor")
+    const limit = 10
+
     const logbooks = await prisma.logbook.findMany({
-      where: { user_id: user.userId },
-      orderBy: { date: "desc" }
+      where: {
+        user_id: user.userId,
+      },
+      orderBy: {
+        date: "desc",
+      },
+      take: limit + 1,
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1,
+      }),
     })
 
-    return NextResponse.json(logbooks)
+    const hasMore = logbooks.length > limit
+
+    const data = hasMore
+      ? logbooks.slice(0, limit)
+      : logbooks
+
+    return NextResponse.json({
+      data,
+      nextCursor: hasMore
+        ? data[data.length - 1].id
+        : null,
+    })
   } catch (error) {
     console.error(error)
+
     return NextResponse.json(
       { error: "Terjadi kesalahan." },
       { status: 500 }

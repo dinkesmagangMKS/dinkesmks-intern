@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Building2,
 } from "lucide-react"
+import { validatePassword } from "@/utils/password"
 
 // Skeleton
 function ProfileSkeleton() {
@@ -55,6 +56,7 @@ export default function AdminProfilePage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordError, setPasswordError] = useState("")
   const [passwordMessage, setPasswordMessage] = useState("")
+  const passwordValidation = validatePassword(form.new_password)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -188,6 +190,21 @@ export default function AdminProfilePage() {
                     />
                   </div>
                 ))}
+
+                {form.new_password && !passwordValidation.valid && (
+                  <ul className="space-y-0.5 mt-1">
+                    {passwordValidation.errors.map(err => (
+                      <li key={err} className="text-[11px] text-zinc-400 flex items-center gap-1">
+                        <span className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                        {err}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {form.new_password && passwordValidation.valid && (
+                  <p className="text-[11px] text-zinc-400 mt-1">Password kuat</p>
+                )}
 
                 {passwordError && (
                   <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">

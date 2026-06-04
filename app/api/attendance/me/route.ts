@@ -1,3 +1,4 @@
+import { autoClockOutIfNeeded } from "@/lib/attendance"
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTodayUTC } from "@/utils/date"
@@ -21,7 +22,7 @@ export async function GET() {
     })
 
     // Attendance hari ini
-    const todayAttendance = todaySession
+    let todayAttendance = todaySession
       ? await prisma.attendance.findUnique({
           where: {
             user_id_attendance_session_id: {
@@ -32,7 +33,9 @@ export async function GET() {
         })
       : null
 
-
+    if (todayAttendance && todaySession) {
+      todayAttendance = await autoClockOutIfNeeded(todayAttendance, todaySession)
+    }
 
     // Riwayat semua attendance
     const history = await prisma.attendance.findMany({
@@ -55,3 +58,4 @@ export async function GET() {
     )
   }
 }
+

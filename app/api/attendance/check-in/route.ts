@@ -40,22 +40,6 @@ export async function POST(request:Request) {
       )
     }
 
-    const existingAttendance = await prisma.attendance.findUnique({
-      where: {
-        user_id_attendance_session_id: {
-          user_id: user.userId,
-          attendance_session_id: session.id
-        }
-      }
-    })
-
-    if (existingAttendance) {
-      return NextResponse.json(
-        { error: "Kamu sudah tercatat hadir hari ini." },
-        { status: 400 }
-      )
-    }
-
     if (code !== session.code) {
       return NextResponse.json(
         { error: "Code tidak cocok dengan sesi "},
@@ -87,11 +71,13 @@ export async function POST(request:Request) {
     })
 
     return NextResponse.json(attendance)
-  } catch (error) {
-    console.error(error)
-    return NextResponse.json(
-      { error: "Terjadi kesalahan." },
-      { status: 500 }
-    )
+  } catch (createError: any) {
+    if (createError?.code === "P2002") {
+      return NextResponse.json(
+        { error: "Kamu sudah tercatat hadir hari ini." },
+        { status: 400 }
+      )
+    }
+    throw createError
   }
 }

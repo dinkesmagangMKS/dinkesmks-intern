@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { AlertCircle, BookOpen, CalendarDays, CheckCircle2, ChevronRight, FileImage, KeyRound } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from "next/image"
 
 function formatDurasi(menit: number): string {
   if (!menit) return "-"
@@ -45,6 +52,21 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
+function formatJamMonitoring(date: string | null): string {
+  if (!date) return "-"
+  return new Date(date).toLocaleTimeString("id-ID", {
+    hour: "2-digit", minute: "2-digit"
+  })
+}
+
+function hitungDurasi(clockIn: string | null, clockOut: string | null): string {
+  if (!clockIn || !clockOut) return "-"
+  const diff = new Date(clockOut).getTime() - new Date(clockIn).getTime()
+  const h = Math.floor(diff / 3600000)
+  const m = Math.floor((diff % 3600000) / 60000)
+  return `${h}j ${m}m`
+}
+
 export default function InternDetailPage() {
   const { id } = useParams()
   const router = useRouter()
@@ -60,6 +82,22 @@ export default function InternDetailPage() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const [showResetModal, setShowResetModal] = useState(false)
+  const [resetPassword, setResetPassword] = useState("")
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetError, setResetError] = useState("")
+  const [resetMessage, setResetMessage] = useState("")
+
+  const [activeTab, setActiveTab] = useState<"absensi" | "logbook">("absensi")
+
+  // Modal alasan izin
+  const [showIzinModal, setShowIzinModal] = useState(false)
+  const [selectedIzin, setSelectedIzin] = useState<{ name: string; reason: string } | null>(null)
+
+  // Modal detail logbook
+  const [showLogbookModal, setShowLogbookModal] = useState(false)
+  const [selectedLogbook, setSelectedLogbook] = useState<any>(null)
 
   useEffect(() => {
     const fetchIntern = async () => {
@@ -116,6 +154,31 @@ export default function InternDetailPage() {
       setDeleteError("Terjadi kesalahan.")
     } finally {
       setDeleteLoading(false)
+    }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setResetLoading(true)
+    setResetError("")
+    try {
+      const res = await fetch(`/api/interns/${id}/reset-password`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_password: resetPassword })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setResetError(data.error)
+        return
+      }
+      setShowResetModal(false)
+      setResetPassword("")
+      setResetMessage("Password berhasil direset. Intern akan diminta ganti password saat login.")
+    } catch {
+      setResetError("Terjadi kesalahan.")
+    } finally {
+      setResetLoading(false)
     }
   }
 
@@ -195,6 +258,16 @@ export default function InternDetailPage() {
               Tandai Selesai
             </button>
           )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setResetError(""); setShowResetModal(true) }}
+            className="h-8 text-xs border-zinc-200 text-zinc-600 hover:bg-zinc-50 gap-1.5"
+          >
+            <KeyRound className="h-3 w-3" />
+            Reset Password
+          </Button>
           
           {intern.status === "PENDING" && (
             <button
@@ -208,6 +281,13 @@ export default function InternDetailPage() {
             </button>
           )}
         </div>
+
+        {resetMessage && (
+          <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-700">
+            <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+            {resetMessage}
+          </div>
+        )}
 
         {/* PROFILE CARD */}
         <div className="rounded-2xl border border-zinc-200 bg-white p-6">
@@ -388,6 +468,151 @@ export default function InternDetailPage() {
 
       </div>
 
+      {/* ── TAB NAVIGATION ── */}
+      <div className="flex items-center gap-1 rounded-lg bg-zinc-50 border border-zinc-100 p-1">
+        {([
+          { key: "absensi", label: "Riwayat Absensi" },
+          { key: "logbook", label: "Riwayat Logbook" },
+        ] as const).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === key
+                ? "bg-white text-zinc-900 shadow-sm border border-zinc-100"
+                : "text-zinc-500 hover:text-zinc-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── TAB ABSENSI ── */}
+      {activeTab === "absensi" && (
+        <div className="rounded-lg border border-zinc-100 overflow-hidden">
+          <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-700">Riwayat Absensi</span>
+            <span className="text-[11px] text-zinc-400">
+              {intern.riwayatAttendance?.length ?? 0} catatan
+            </span>
+          </div>
+
+          {!intern.riwayatAttendance?.length ? (
+            <div className="flex flex-col items-center gap-1.5 py-10 text-zinc-300">
+              <CalendarDays className="h-6 w-6" />
+              <p className="text-xs">Belum ada riwayat absensi.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-50">
+              {/* Header tabel */}
+              <div className="hidden md:grid grid-cols-6 px-4 py-2 text-[11px] font-medium text-zinc-400">
+                <span className="col-span-2">Tanggal</span>
+                <span>Status</span>
+                <span>Clock In</span>
+                <span>Clock Out</span>
+                <span>Durasi</span>
+              </div>
+
+              {intern.riwayatAttendance.map((item: any) => (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-2 md:grid-cols-6 gap-y-1 px-4 py-3 hover:bg-zinc-50 transition-colors text-xs"
+                >
+                  <span className="text-zinc-600 col-span-2 md:col-span-2 font-medium">
+                    {formatTanggal(item.session.date)}
+                  </span>
+                  <span>
+                    <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${
+                      item.status === "HADIR"
+                        ? "bg-zinc-900 text-white border-zinc-900"
+                        : "bg-zinc-100 text-zinc-500 border-zinc-200"
+                    }`}>
+                      {item.status}
+                    </span>
+                  </span>
+                  <span className="text-zinc-400">{formatJamMonitoring(item.clock_in_at)}</span>
+                  <span className="text-zinc-400">{formatJamMonitoring(item.clock_out_at)}</span>
+                  <span className="flex items-center gap-2 text-zinc-400">
+                    {hitungDurasi(item.clock_in_at, item.clock_out_at)}
+                    {item.status === "IZIN" && item.reason && (
+                      <button
+                        onClick={() => {
+                          setSelectedIzin({ name: intern.name, reason: item.reason })
+                          setShowIzinModal(true)
+                        }}
+                        className="text-[11px] text-zinc-400 hover:text-zinc-900 underline underline-offset-2 transition-colors"
+                      >
+                        Lihat alasan
+                      </button>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB LOGBOOK ── */}
+      {activeTab === "logbook" && (
+        <div className="rounded-lg border border-zinc-100 overflow-hidden">
+          <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-700">Riwayat Logbook</span>
+            <span className="text-[11px] text-zinc-400">
+              {intern.riwayatLogbook?.length ?? 0} entri
+            </span>
+          </div>
+
+          {!intern.riwayatLogbook?.length ? (
+            <div className="flex flex-col items-center gap-1.5 py-10 text-zinc-300">
+              <BookOpen className="h-6 w-6" />
+              <p className="text-xs">Belum ada riwayat logbook.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-50">
+              {intern.riwayatLogbook.map((lb: any) => (
+                <div
+                  key={lb.id}
+                  onClick={() => {
+                    setSelectedLogbook(lb)
+                    setShowLogbookModal(true)
+                  }}
+                  className="flex items-start gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors cursor-pointer"
+                >
+                  {/* Thumbnail */}
+                  <div className="shrink-0 mt-0.5">
+                    {lb.documentation ? (
+                      <img
+                        src={lb.documentation}
+                        alt="Dokumentasi"
+                        className="h-10 w-10 rounded-md object-cover border border-zinc-100"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-md bg-zinc-100 border border-zinc-100 flex items-center justify-center">
+                        <FileImage className="h-4 w-4 text-zinc-300" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-medium text-zinc-500">
+                      {formatTanggal(lb.date)}
+                    </p>
+                    <p className="text-sm text-zinc-800 mt-0.5 leading-snug line-clamp-2">
+                      {lb.description}
+                    </p>
+                  </div>
+
+                  <ChevronRight className="h-3.5 w-3.5 text-zinc-300 shrink-0 mt-1" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* MODAL KONFIRMASI */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-4 md:items-center">
@@ -434,6 +659,72 @@ export default function InternDetailPage() {
         </div>
       )}
 
+      <Dialog
+        open={showResetModal}
+        onOpenChange={open => {
+          setShowResetModal(open)
+          if (!open) { setResetError(""); setResetPassword("") }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm rounded-xl p-5">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
+                <KeyRound className="h-3.5 w-3.5 text-zinc-700" />
+              </div>
+              Reset Password
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400 mt-1">
+              Intern akan diminta ganti password saat login berikutnya.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleResetPassword} className="space-y-3 mt-1">
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-zinc-600">
+                Password Sementara
+              </Label>
+              <Input
+                type="password"
+                placeholder="Minimal 8 karakter"
+                value={resetPassword}
+                onChange={e => setResetPassword(e.target.value)}
+                className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                required
+              />
+            </div>
+
+            {resetError && (
+              <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
+                <AlertCircle className="h-3.5 w-3.5" />
+                <AlertDescription className="text-xs">{resetError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1 h-8 text-xs border-zinc-200"
+                onClick={() => setShowResetModal(false)}
+                disabled={resetLoading}
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                disabled={resetLoading}
+              >
+                {resetLoading ? "Mereset..." : "Reset Password"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* MODAL DELETE */}
       {showDeleteModal && (
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-4 md:items-center">
@@ -471,6 +762,68 @@ export default function InternDetailPage() {
         </div>
       </div>
     )}
+
+    {/* ── MODAL ALASAN IZIN ── */}
+    <Dialog
+      open={showIzinModal}
+      onOpenChange={open => {
+        setShowIzinModal(open)
+        if (!open) setSelectedIzin(null)
+      }}
+    >
+      <DialogContent className="sm:max-w-xs rounded-xl p-5">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-semibold text-zinc-900">
+            Alasan Izin
+          </DialogTitle>
+        </DialogHeader>
+        {selectedIzin && (
+          <div className="space-y-2 mt-1">
+            <p className="text-xs font-medium text-zinc-500">{selectedIzin.name}</p>
+            <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5 text-sm text-zinc-700 leading-relaxed">
+              {selectedIzin.reason || "-"}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+
+    {/* ── MODAL DETAIL LOGBOOK ── */}
+    <Dialog
+      open={showLogbookModal}
+      onOpenChange={open => {
+        setShowLogbookModal(open)
+        if (!open) setSelectedLogbook(null)
+      }}
+    >
+      <DialogContent className="sm:max-w-sm rounded-xl p-5">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-semibold text-zinc-900">
+            Detail Logbook
+          </DialogTitle>
+        </DialogHeader>
+        {selectedLogbook && (
+          <div className="space-y-3 mt-1">
+            <p className="text-xs text-zinc-400">
+              {formatTanggal(selectedLogbook.date)}
+            </p>
+            <p className="text-sm text-zinc-700 leading-relaxed">
+              {selectedLogbook.description}
+            </p>
+            {selectedLogbook.documentation && (
+              <Image
+                src={selectedLogbook.documentation}
+                alt="Dokumentasi"
+                width={600}
+                height={400}
+                className="w-full max-h-48 object-cover rounded-lg"
+                onError={e => (e.currentTarget.style.display = "none")}
+              />
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
     </main>
   )
 }

@@ -5,17 +5,36 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Division
-  const psdk = await prisma.division.findUnique({
+  const psdk = await prisma.division.upsert({
     where: { name: "PSDK" },
+    update: {},
+    create: {
+      name: "PSDK",
+    },
   });
-  const yankes = await prisma.division.findUnique({
+
+  const yankes = await prisma.division.upsert({
     where: { name: "Pelayanan Kesehatan" },
+    update: {},
+    create: {
+      name: "Pelayanan Kesehatan",
+    },
   });
-  const farmasi = await prisma.division.findUnique({
+
+  const farmasi = await prisma.division.upsert({
     where: { name: "Farmasi" },
+    update: {},
+    create: {
+      name: "Farmasi",
+    },
   });
-  const p2k = await prisma.division.findUnique({
+
+  const p2k = await prisma.division.upsert({
     where: { name: "P2K" },
+    update: {},
+    create: {
+      name: "P2K",
+    },
   });
 
   // Password

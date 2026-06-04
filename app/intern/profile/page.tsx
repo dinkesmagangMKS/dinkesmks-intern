@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Image from "next/image"
 
 import {
   User,
@@ -23,7 +24,8 @@ import {
   Building2,
 } from "lucide-react"
 import imageCompression from "browser-image-compression"
-import { uploadFile } from "@/lib/supabase"
+import { sanitizeFileName, uploadFile } from "@/lib/supabase"
+import { validatePassword } from "@/utils/password"
 
 // Helpers
 
@@ -111,6 +113,8 @@ export default function InternProfilePage() {
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState("")
   const [editMessage, setEditMessage] = useState("")
+
+  const passwordValidation = validatePassword(form.new_password)
 
   const [photoUploading, setPhotoUploading] = useState(false)
 
@@ -222,7 +226,7 @@ export default function InternProfilePage() {
         maxWidthOrHeight: 800,
         useWebWorker: true
       })
-      const fileName = `photos/${Date.now()}-${file.name}`
+      const fileName = `photos/${sanitizeFileName(file.name)}`
       const photoUrl = await uploadFile(compressed, fileName)
 
       // Update ke database langsung
@@ -275,10 +279,12 @@ export default function InternProfilePage() {
                 {/* Avatar + tombol ganti foto */}
                 <div className="relative shrink-0">
                   {profile?.photo_url ? (
-                    <img
+                    <Image
                       src={profile.photo_url}
                       alt={user?.name}
-                      className="h-14 w-14 rounded-full object-cover border border-zinc-100"
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 rounded-full object-cover"
                     />
                   ) : (
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 text-lg font-semibold">
@@ -457,6 +463,21 @@ export default function InternProfilePage() {
                     />
                   </div>
                 ))}
+
+                {form.new_password && !passwordValidation.valid && (
+                  <ul className="space-y-0.5 mt-1">
+                    {passwordValidation.errors.map(err => (
+                      <li key={err} className="text-[11px] text-zinc-400 flex items-center gap-1">
+                        <span className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
+                        {err}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {form.new_password && passwordValidation.valid && (
+                  <p className="text-[11px] text-zinc-400 mt-1">Password kuat</p>
+                )}
 
                 {passwordError && (
                   <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">

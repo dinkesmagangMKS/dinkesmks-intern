@@ -1,3 +1,4 @@
+import { autoClockOutIfNeeded } from "@/lib/attendance"
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTodayUTC } from "@/utils/date"
@@ -14,52 +15,54 @@ export async function GET() {
 
     const today = getTodayUTC()
 
-    // Sesi hari ini
-    const todaySession = await prisma.attendanceSession.findFirst({
-      where: { date: new Date(today) }
-    })
+    const [todaySession, profile, logbookTerakhir] = await Promise.all([
+      prisma.attendanceSession.findFirst({
+        where: { date: getTodayUTC() }
+      }),
+      prisma.internProfile.findUnique({
+        where: { user_id: user.userId }
+      }),
+      prisma.logbook.findFirst({
+        where: { user_id: user.userId },
+        orderBy: { date: "desc" }
+      })
+    ])
 
-    // Attendance hari ini
-    const todayAttendance = todaySession
-      ? await prisma.attendance.findUnique({
-          where: {
-            user_id_attendance_session_id: {
-              user_id: user.userId,
-              attendance_session_id: todaySession.id
-            }
+    // todayAttendance bergantung ke todaySession — tetap sequential
+    let todayAttendance = todaySession
+      ? await prisma.attendance.findUnique({ 
+        where: {
+          user_id_attendance_session_id: {
+            user_id: user.userId,
+            attendance_session_id: todaySession.id
           }
-        })
+        }
+      })
       : null
 
-    // Profil intern
-    const profile = await prisma.internProfile.findUnique({
-      where: { user_id: user.userId }
-    })
-
-    // Statistik kehadiran
-    const sessions = await prisma.attendanceSession.findMany({
-      where: {
-        date: {
-          gte: profile?.start_date ?? undefined,
-          lte: profile?.finished_early_at ?? profile?.end_date ?? undefined
+    // sessions dan attendances tidak bergantung satu sama lain — paralel
+    const [sessions, attendances] = await Promise.all([
+      prisma.attendanceSession.findMany({
+        where: {
+          date: {
+            gte: profile?.start_date ?? undefined,
+            lte: profile?.finished_early_at ?? profile?.end_date ?? undefined
+          }
         }
-      }
-    })
+      }),
+      prisma.attendance.findMany({
+        where: { user_id: user.userId }
+      })
+    ])
 
-    const attendances = await prisma.attendance.findMany({
-      where: { user_id: user.userId }
-    })
+    if (todayAttendance && todaySession) {
+      todayAttendance = await autoClockOutIfNeeded(todayAttendance, todaySession)
+    }
 
     const totalSesi = sessions.length
     const totalHadir = attendances.filter(a => a.status === "HADIR").length
     const totalIzin = attendances.filter(a => a.status === "IZIN").length
     const totalAbsen = totalSesi - totalHadir - totalIzin
-
-    // Logbook terakhir
-    const logbookTerakhir = await prisma.logbook.findFirst({
-      where: { user_id: user.userId },
-      orderBy: { date: "desc" }
-    })
 
     return NextResponse.json({
       todaySession,

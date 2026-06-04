@@ -14,48 +14,54 @@ export async function GET() {
     const now = new Date()
     const today = getTodayUTC()
 
-    // Sesi hari ini
-    const todaySession = await prisma.attendanceSession.findFirst({
-      where: { date: today },
-      include: { attendances: true }
-    })
-
-    // Total intern aktif
-    const totalInternAktif = await prisma.user.count({
-      where: {
-        role: "INTERN",
-        ...(user.role === "ADMIN" && { division_id: user.divisionId }),
-        profile: {
-          start_date: { lte: now },
-          end_date: { gte: now },
-          finished_early_at: null
+    const [todaySession, totalInternAktif, internsHariIni, divisions] = await Promise.all([
+      prisma.attendanceSession.findFirst({
+        where: { date: today },
+        include: { attendances: true }
+      }),
+      prisma.user.count({
+        where: {
+          role: "INTERN",
+          ...(user.role === "ADMIN" && { division_id: user.divisionId }),
+          profile: {
+            start_date: { lte: now },
+            end_date: { gte: now },
+            finished_early_at: null
+          }
         }
-      }
-    })
-
-    // Query intern aktif beserta attendance hari ini
-    const internsHariIni = await prisma.user.findMany({
-      where: {
-        role: "INTERN",
-        ...(user.role === "ADMIN" && { division_id: user.divisionId }),
-        profile: {
-          start_date: { lte: now },
-          end_date: { gte: now },
-          finished_early_at: null
+      }),
+      prisma.user.findMany({
+        where: {
+          role: "INTERN",
+          ...(user.role === "ADMIN" && { division_id: user.divisionId }),
+          profile: {
+            start_date: { lte: now },
+            end_date: { gte: now },
+            finished_early_at: null
+          }
+        },
+        include: {
+          profile: true,
+          division: true,
+          attendances: {
+            where: { session: { date: today } }
+          }
         }
-      },
-      include: {
-        profile: true,
-        division: true,
-        attendances: {
-          where: {
-            session: {
-              date: new Date(today)
+      }),
+      prisma.division.findMany({
+        include: {
+          users: {
+            where: { role: "INTERN" },
+            include: {
+              attendances: {
+                where: { session: { date: today } }
+              },
+              profile: true
             }
           }
         }
-      }
-    })
+      })
+    ])
 
     // Map ke format yang lebih simpel
     const listInternHariIni = internsHariIni.map(intern => ({
@@ -78,22 +84,6 @@ export async function GET() {
     const izinHariIni = attendancesToday.filter(a => a.status === "IZIN").length
     const belumHadir = totalInternAktif - hadirHariIni - izinHariIni
 
-    // Rekap per divisi
-    const divisions = await prisma.division.findMany({
-      include: {
-        users: {
-          where: { role: "INTERN" },
-          include: {
-            attendances: {
-              where: {
-                session: { date: today }
-              }
-            },
-            profile: true
-          }
-        }
-      }
-    })
 
     const rekapDivisi = divisions
       .filter(div => 
