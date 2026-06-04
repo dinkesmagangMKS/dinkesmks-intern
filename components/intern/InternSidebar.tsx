@@ -44,6 +44,7 @@ export function InternSidebar() {
       const response = await fetch("/api/auth/logout", { method: "POST" });
       const data = await response.json();
       if (!response.ok) { setError(data.error); return; }
+      localStorage.removeItem("user_role");
       router.push("/login");
     } catch {
       setError("Terjadi kesalahan. Periksa koneksi internetmu.");
