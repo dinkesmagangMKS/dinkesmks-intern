@@ -30,6 +30,9 @@ export default function LoginPage() {
         return
       }
 
+      // Store role in localStorage for layout authorization
+      localStorage.setItem("user_role", data.role)
+
       // Redirect berdasarkan role dan status first login
       if (data.role === "INTERN") {
         if (data.isFirstLogin) {
