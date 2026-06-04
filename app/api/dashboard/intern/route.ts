@@ -1,3 +1,4 @@
+import { autoClockOutIfNeeded } from "@/lib/attendance"
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTodayUTC } from "@/utils/date"
@@ -28,7 +29,7 @@ export async function GET() {
     ])
 
     // todayAttendance bergantung ke todaySession — tetap sequential
-    const todayAttendance = todaySession
+    let todayAttendance = todaySession
       ? await prisma.attendance.findUnique({ 
         where: {
           user_id_attendance_session_id: {
@@ -53,6 +54,10 @@ export async function GET() {
         where: { user_id: user.userId }
       })
     ])
+
+    if (todayAttendance && todaySession) {
+      todayAttendance = await autoClockOutIfNeeded(todayAttendance, todaySession)
+    }
 
     const totalSesi = sessions.length
     const totalHadir = attendances.filter(a => a.status === "HADIR").length

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import type { InternWithStatus } from "@/types"
 import Link from "next/link"
+import { Input } from "@/components/ui/input"
 
 export default function InternPage() {
   const [loading, setLoading] = useState(true)
@@ -19,6 +20,8 @@ export default function InternPage() {
   })
   const [modalLoading, setModalLoading] = useState(false)
   const [modalError, setModalError] = useState("")
+
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     if (!showModal) return
@@ -89,13 +92,17 @@ export default function InternPage() {
 
 
   // FILTER
-  const filteredInterns = interns.filter((intern) => {
+  const filteredInterns = interns.filter(intern => {
     const statusMatch =
-      filterStatus === "SEMUA"
-        ? true
-        : intern.status === filterStatus
+      filterStatus === "SEMUA" ? true : intern.status === filterStatus
 
-    return statusMatch
+    const searchMatch =
+      search === ""
+        ? true
+        : intern.name.toLowerCase().includes(search.toLowerCase()) ||
+          (intern.profile?.university ?? "").toLowerCase().includes(search.toLowerCase())
+
+    return statusMatch && searchMatch
   })
 
   return (
@@ -149,6 +156,13 @@ export default function InternPage() {
               Semua Divisi
             </button>
           </div>
+
+          <Input
+            placeholder="Cari nama atau universitas..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="h-8 text-xs border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 w-full md:w-56"
+          />
 
           {/* FILTER STATUS */}
           <select
