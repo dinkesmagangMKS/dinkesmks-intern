@@ -46,11 +46,11 @@ function InfoRow({ icon: Icon, label, value }: {
   return (
     <div className="flex items-start gap-2.5 py-3 border-b border-zinc-50">
       <div className="flex h-6 w-6 items-center justify-center shrink-0 mt-0.5">
-        <Icon className="h-3.5 w-3.5 text-zinc-300" />
+        <Icon className="h-3.5 w-3.5 text-zinc-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-zinc-400">{label}</p>
-        <p className="text-sm text-zinc-800 mt-0.5 font-medium truncate">{value || "-"}</p>
+        <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-zinc-700 mt-0.5 font-semibold truncate">{value || "-"}</p>
       </div>
     </div>
   )
@@ -60,7 +60,7 @@ function InfoRow({ icon: Icon, label, value }: {
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-pulse">
       {/* Avatar area */}
       <div className="flex items-center gap-3 rounded-lg border border-zinc-100 p-4">
         <Skeleton className="h-14 w-14 rounded-full shrink-0" />
@@ -203,7 +203,7 @@ export default function InternProfilePage() {
         return
       }
       setIsEditing(false)
-      setEditMessage("Profil berhasil diperbarui!")
+      setEditMessage("Profil berhasil diperbarui! ✨")
       // Refresh data
       const refreshed = await fetch("/api/profile")
       const refreshedData = await refreshed.json()
@@ -258,14 +258,11 @@ export default function InternProfilePage() {
     <main className="min-h-screen bg-white p-5">
       <div className="mx-auto space-y-4">
 
-        {/*  HEADER  */}
+        {/* HEADER  */}
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900">
-            <User className="h-4 w-4 text-white" />
-          </div>
           <div>
-            <h1 className="text-base font-semibold text-zinc-900 leading-tight">Profil</h1>
-            <p className="text-xs text-zinc-400">Informasi akunmu selama magang.</p>
+            <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">Profil</h1>
+            <p className="text-xs font-medium text-zinc-500 mt-0.5">Informasi akunmu selama magang.</p>
           </div>
         </div>
 
@@ -273,9 +270,9 @@ export default function InternProfilePage() {
           <ProfileSkeleton />
         ) : (
           <>
-            {/*  FOTO PROFIL + IDENTITAS  */}
-            <div className="rounded-lg border border-zinc-100 p-4">
-              <div className="flex items-center gap-3">
+            {/* FOTO PROFIL + IDENTITAS  */}
+            <div className="rounded-lg border border-zinc-100 p-4 bg-zinc-50/50">
+              <div className="flex items-center gap-4">
                 {/* Avatar + tombol ganti foto */}
                 <div className="relative shrink-0">
                   {profile?.photo_url ? (
@@ -284,17 +281,17 @@ export default function InternProfilePage() {
                       alt={user?.name}
                       width={56}
                       height={56}
-                      className="h-14 w-14 rounded-full object-cover"
+                      className="h-14 w-14 rounded-full object-cover border border-zinc-200"
                     />
                   ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 text-lg font-semibold">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-500 text-lg font-bold">
                       {initials}
                     </div>
                   )}
 
-                  <label className="absolute -bottom-1 -right-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-zinc-900 border-2 border-white hover:bg-zinc-700 transition-colors">
+                  <label className="absolute -bottom-1 -right-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-[#2d5a1b] border-2 border-white hover:bg-[#204013] transition-colors shadow-sm">
                     {photoUploading ? (
-                      <div className="h-2.5 w-2.5 animate-spin rounded-full border border-white border-t-transparent" />
+                      <div className="h-2 w-2 animate-spin rounded-full border border-white border-t-transparent" />
                     ) : (
                       <Camera className="h-2.5 w-2.5 text-white" />
                     )}
@@ -309,15 +306,15 @@ export default function InternProfilePage() {
                 </div>
 
                 <div>
-                  <p className="text-base font-semibold text-zinc-900 leading-tight">{user?.name}</p>
-                  <p className="text-xs text-zinc-400 mt-0.5">{user?.email}</p>
-                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    <span className="inline-flex items-center gap-1 rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-white">
+                  <p className="text-base font-bold text-zinc-800 leading-tight">{user?.name}</p>
+                  <p className="text-xs font-medium text-zinc-400 mt-0.5">{user?.email}</p>
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 rounded bg-[#2d5a1b] px-2 py-0.5 text-[10px] font-bold text-white tracking-wide">
                       {user?.role ?? "INTERN"}
                     </span>
                     {user?.division?.name && (
-                      <span className="inline-flex items-center gap-1 rounded border border-zinc-200 bg-white px-2 py-0.5 text-[11px] text-zinc-500">
-                        <Building2 className="h-2.5 w-2.5" />
+                      <span className="inline-flex items-center gap-1 rounded border border-zinc-200 bg-white px-2 py-0.5 text-[10px] font-medium text-zinc-500 shadow-sm">
+                        <Building2 className="h-2.5 w-2.5 text-[#2d5a1b]" />
                         {user.division.name}
                       </span>
                     )}
@@ -326,21 +323,21 @@ export default function InternProfilePage() {
               </div>
             </div>
 
-            {/*  INFO LENGKAP  */}
+            {/* INFO LENGKAP  */}
             <div className="rounded-lg border border-zinc-100 overflow-hidden">
               <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
-                <span className="text-xs font-medium text-zinc-700">Informasi</span>
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Informasi Akun</span>
                 <button
                   onClick={() => { setIsEditing(!isEditing); setEditError("") }}
-                  className="text-[11px] text-zinc-500 hover:text-zinc-900 transition-colors"
+                  className="text-[11px] font-semibold text-zinc-500 hover:text-[#2d5a1b] transition-colors"
                 >
-                  {isEditing ? "Batal" : "Edit"}
+                  {isEditing ? "Batal" : "Edit Profil"}
                 </button>
               </div>
 
               {editMessage && (
-                <div className="flex items-center gap-2 mx-4 mt-3 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                <div className="flex items-center gap-2 mx-4 mt-3 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-xs text-emerald-800">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                   {editMessage}
                 </div>
               )}
@@ -378,7 +375,7 @@ export default function InternProfilePage() {
                         value={editForm[f.id as keyof typeof editForm]}
                         onChange={e => setEditForm({ ...editForm, [f.id]: e.target.value })}
                         placeholder={f.placeholder}
-                        className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                        className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
                       />
                     </div>
                   ))}
@@ -392,7 +389,7 @@ export default function InternProfilePage() {
                         value={editForm.start_date}
                         onChange={e => setEditForm({ ...editForm, start_date: e.target.value })}
                         disabled={profile?.finished_early_at !== null && profile?.finished_early_at !== undefined}
-                        className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 disabled:opacity-50"
+                        className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 disabled:opacity-50"
                       />
                     </div>
                     <div className="space-y-1">
@@ -402,7 +399,7 @@ export default function InternProfilePage() {
                         value={editForm.end_date}
                         onChange={e => setEditForm({ ...editForm, end_date: e.target.value })}
                         disabled={profile?.finished_early_at !== null && profile?.finished_early_at !== undefined}
-                        className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 disabled:opacity-50"
+                        className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 disabled:opacity-50"
                       />
                     </div>
                   </div>
@@ -424,7 +421,7 @@ export default function InternProfilePage() {
                     type="submit"
                     size="sm"
                     disabled={editLoading}
-                    className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                    className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shadow-sm transition-colors"
                   >
                     {editLoading ? "Menyimpan..." : "Simpan Perubahan"}
                   </Button>
@@ -432,16 +429,16 @@ export default function InternProfilePage() {
               )}
             </div>
 
-            {/*  GANTI PASSWORD  */}
+            {/* GANTI PASSWORD  */}
             <div className="rounded-lg border border-zinc-100 overflow-hidden">
               <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700">Ganti Password</span>
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Keamanan Akun</span>
               </div>
 
               <form onSubmit={handlePassword} className="p-4 space-y-3">
                 {passwordMessage && (
-                  <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                  <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-xs text-emerald-800">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                     {passwordMessage}
                   </div>
                 )}
@@ -458,7 +455,7 @@ export default function InternProfilePage() {
                       placeholder={f.placeholder}
                       value={form[f.id as keyof typeof form]}
                       onChange={e => setForm({ ...form, [f.id]: e.target.value })}
-                      className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                      className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
                       required
                     />
                   </div>
@@ -476,7 +473,7 @@ export default function InternProfilePage() {
                 )}
 
                 {form.new_password && passwordValidation.valid && (
-                  <p className="text-[11px] text-zinc-400 mt-1">Password kuat</p>
+                  <p className="text-[11px] text-emerald-600 font-medium mt-1">✓ Password memenuhi kriteria</p>
                 )}
 
                 {passwordError && (
@@ -490,7 +487,7 @@ export default function InternProfilePage() {
                   type="submit"
                   size="sm"
                   disabled={passwordLoading}
-                  className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white gap-1.5"
+                  className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium gap-1.5 shadow-sm transition-colors"
                 >
                   <Lock className="h-3 w-3" />
                   {passwordLoading ? "Menyimpan..." : "Ubah Password"}

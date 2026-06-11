@@ -60,8 +60,7 @@ function RiwayatSkeleton() {
   )
 }
 
-// Main Page─
-
+// Main Page
 export default function LogbookInternPage() {
   const [tab, setTab] = useState<"isi" | "riwayat">("isi")
   const [logbooks, setLogbooks] = useState<any[]>([])
@@ -139,7 +138,6 @@ export default function LogbookInternPage() {
 
       const blob = await res.blob()
 
-      // Extract filename from Content-Disposition header or use fallback
       const disposition = res.headers.get("Content-Disposition")
       let filename = "logbook.pdf"
       if (disposition) {
@@ -276,26 +274,27 @@ export default function LogbookInternPage() {
     <main className="min-h-screen bg-white p-5">
       <div className="mx-auto space-y-4">
 
-        {/*  HEADER  */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900">
-            <BookOpen className="h-4 w-4 text-white" />
-          </div>
+        {/* HEADER */}
+        <div className="flex items-center">
           <div>
-            <h1 className="text-base font-semibold text-zinc-900 leading-tight">Logbook</h1>
-            <p className="text-xs text-zinc-400">Catat aktivitas harianmu selama magang.</p>
+            <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">
+              Logbook
+            </h1>
+            <p className="text-xs font-medium text-zinc-500 mt-0.5">
+              Catat aktivitas harianmu selama magang.
+            </p>
           </div>
         </div>
 
-        {/*  SUCCESS MESSAGE  */}
+        {/* SUCCESS MESSAGE */}
         {submitMessage && (
-          <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-700">
-            <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+          <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 text-xs text-emerald-800">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
             {submitMessage}
           </div>
         )}
 
-        {/*  TOGGLE TAB  */}
+        {/* TOGGLE TAB */}
         <div className="flex items-center gap-1 rounded-lg bg-zinc-50 border border-zinc-100 p-1">
           {([
             { key: "isi",     label: "Isi Logbook",  icon: BookOpen  },
@@ -306,7 +305,7 @@ export default function LogbookInternPage() {
               onClick={() => setTab(key)}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 tab === key
-                  ? "bg-white text-zinc-900 shadow-sm border border-zinc-100"
+                  ? "bg-white text-[#2d5a1b] shadow-sm border border-zinc-100"
                   : "text-zinc-500 hover:text-zinc-700"
               }`}
             >
@@ -316,7 +315,7 @@ export default function LogbookInternPage() {
           ))}
         </div>
 
-        {/*  TAB ISI LOGBOOK  */}
+        {/* TAB ISI LOGBOOK */}
         {tab === "isi" && (
           <form onSubmit={handleSubmit} className="space-y-3">
 
@@ -327,7 +326,7 @@ export default function LogbookInternPage() {
                 type="date"
                 value={form.date}
                 onChange={e => setForm({ ...form, date: e.target.value })}
-                className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
                 required
               />
             </div>
@@ -339,7 +338,7 @@ export default function LogbookInternPage() {
                 placeholder="Ceritain apa aja yang kamu kerjain hari ini..."
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
-                className="text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 min-h-25 resize-none"
+                className="text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-25 resize-none"
                 required
               />
             </div>
@@ -381,6 +380,7 @@ export default function LogbookInternPage() {
               )}
             </div>
 
+            {/* ERROR SUBMIT */}
             {submitError && (
               <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
                 <AlertCircle className="h-3.5 w-3.5" />
@@ -388,22 +388,24 @@ export default function LogbookInternPage() {
               </Alert>
             )}
 
+            {/* Button Submit Utama */}
             <Button
               type="submit"
               size="sm"
               disabled={submitLoading}
-              className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+              className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shadow-sm transition-colors"
             >
               {submitLoading ? "Menyimpan..." : "Simpan Logbook"}
             </Button>
           </form>
         )}
 
-        {/*  TAB RIWAYAT  */}
+        {/* TAB RIWAYAT */}
         {tab === "riwayat" && (
           <div className="rounded-lg border border-zinc-100 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-              <span className="text-xs font-medium text-zinc-700">Riwayat Logbook</span>
+              {/* Judul riwayat diubah warna hijau botol */}
+              <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Riwayat Logbook</span>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-zinc-400">{logbooks.length} entri</span>
                 <Button
@@ -411,7 +413,7 @@ export default function LogbookInternPage() {
                   size="sm"
                   onClick={handleExport}
                   disabled={exportLoading || logbooks.length === 0}
-                  className="h-6 px-2.5 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-1.5"
+                  className="h-6 px-2.5 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-[#2d5a1b] gap-1.5"
                 >
                   {exportLoading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -445,7 +447,7 @@ export default function LogbookInternPage() {
                           alt="Dokumentasi"
                           width={50}
                           height={50}
-                          className="w-full max-h-48 object-cover rounded-lg"
+                          className="w-10 h-10 object-cover rounded-md border border-zinc-100"
                         />
                       ) : (
                         <div className="h-10 w-10 rounded-md bg-zinc-100 border border-zinc-100 flex items-center justify-center">
@@ -456,16 +458,16 @@ export default function LogbookInternPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-medium text-zinc-500">
+                      <p className="text-[11px] font-medium text-zinc-400">
                         {formatTanggal(lb.date)}
                       </p>
-                      <p className="text-sm text-zinc-800 mt-0.5 leading-snug line-clamp-2">
+                      <p className="text-xs text-zinc-700 mt-0.5 leading-relaxed whitespace-pre-line line-clamp-2">
                         {lb.description}
                       </p>
                       {lb.documentation && (
-                        <p className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
+                        <p className="text-[10px] font-medium text-[#2d5a1b] mt-1 flex items-center gap-1">
                           <ImageIcon className="h-2.5 w-2.5" />
-                          Ada foto
+                          Ada foto dokumentasi
                         </p>
                       )}
                     </div>
@@ -480,7 +482,7 @@ export default function LogbookInternPage() {
                         setEditError("")
                         setShowEditModal(true)
                       }}
-                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 shrink-0 gap-1"
+                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-[#2d5a1b] shrink-0 gap-1"
                     >
                       <Pencil className="h-2.5 w-2.5" />
                       Edit
@@ -506,12 +508,14 @@ export default function LogbookInternPage() {
             )}
           </div>
         )}
+
+        {/* LOAD MORE PAGINATION */}
         {nextCursor && (
-          <div className="px-4 py-3 border-t border-zinc-50">
+          <div className="px-4 py-3">
             <Button
               variant="outline"
               size="sm"
-              className="w-full h-8 text-xs border-zinc-200 text-zinc-500"
+              className="w-full h-8 text-xs border-zinc-200 text-zinc-500 hover:text-[#2d5a1b] transition-colors"
               onClick={() => fetchLogbooks(nextCursor)}
               disabled={loadingMore}
             >
@@ -521,7 +525,7 @@ export default function LogbookInternPage() {
         )}
       </div>
 
-      {/*  MODAL EDIT  */}
+      {/* MODAL EDIT */}
       <Dialog
         open={showEditModal}
         onOpenChange={open => {
@@ -531,16 +535,17 @@ export default function LogbookInternPage() {
       >
         <DialogContent className="sm:max-w-sm rounded-xl p-5">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
-                <Pencil className="h-3.5 w-3.5 text-zinc-700" />
+            <DialogTitle className="flex items-center gap-2 text-sm font-bold text-[#2d5a1b]">
+              {/* Icon container diganti sewarna hijau botol ringan */}
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-50 text-[#2d5a1b]">
+                <Pencil className="h-3.5 w-3.5" />
               </div>
               Edit Logbook
             </DialogTitle>
           </DialogHeader>
 
           {selectedLogbook && (
-            <p className="text-[11px] text-zinc-400 -mt-1">
+            <p className="text-[11px] text-zinc-400 -mt-2 font-medium">
               {formatTanggal(selectedLogbook.date)}
             </p>
           )}
@@ -551,7 +556,7 @@ export default function LogbookInternPage() {
               <Textarea
                 value={editForm.description}
                 onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-                className="text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 min-h-22.5 resize-none"
+                className="text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-22.5 resize-none"
                 required
               />
             </div>
@@ -562,18 +567,19 @@ export default function LogbookInternPage() {
                 value={editForm.documentation}
                 onChange={e => setEditForm({ ...editForm, documentation: e.target.value })}
                 placeholder="https://..."
-                className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
               />
               {editForm.documentation && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <Image
-                  src={editForm.documentation}
-                  alt="Preview"
-                  width={600}
-                  height={400}
-                  className="w-full max-h-48 object-cover rounded-lg"
-                  onError={e => (e.currentTarget.style.display = "none")}
-                />
+                <div className="mt-2 rounded-lg overflow-hidden border border-zinc-100">
+                  <Image
+                    src={editForm.documentation}
+                    alt="Preview"
+                    width={600}
+                    height={400}
+                    className="w-full max-h-48 object-cover"
+                    onError={e => (e.currentTarget.style.display = "none")}
+                  />
+                </div>
               )}
             </div>
 
@@ -598,7 +604,7 @@ export default function LogbookInternPage() {
               <Button
                 type="submit"
                 size="sm"
-                className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium"
                 disabled={editLoading}
               >
                 {editLoading ? "Menyimpan..." : "Simpan"}
@@ -608,6 +614,7 @@ export default function LogbookInternPage() {
         </DialogContent>
       </Dialog>
 
+      {/* MODAL DELETE */}
       <Dialog
         open={showDeleteModal}
         onOpenChange={open => {
@@ -626,7 +633,7 @@ export default function LogbookInternPage() {
           </DialogHeader>
 
           {selectedLogbook && (
-            <p className="text-xs text-zinc-500 -mt-1">
+            <p className="text-xs text-zinc-400 -mt-2">
               {formatTanggal(selectedLogbook.date)}
             </p>
           )}

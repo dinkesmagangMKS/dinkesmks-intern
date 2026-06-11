@@ -17,17 +17,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 
-import {
-  CalendarDays,
-  Clock,
-  LogOut,
-  FileText,
-  AlertCircle,
-  CheckCircle2,
-  Info,
-  ClockIcon,
-} from "lucide-react"
-
 // Helpers
 
 function formatJam(date: string | null): string {
@@ -53,12 +42,12 @@ function hitungDurasi(clockIn: string | null, clockOut: string | null): string {
 
 function StatusBadge({ status }: { status: string }) {
   const cls: Record<string, string> = {
-    HADIR:  "bg-zinc-900 text-white border-zinc-900",
-    IZIN:   "bg-zinc-100 text-zinc-500 border-zinc-200",
-    ALPHA:  "bg-white text-zinc-400 border-zinc-200",
+    HADIR:  "bg-emerald-50 text-emerald-700 border-emerald-200", // Disesuaikan dengan gaya Dashboard
+    IZIN:   "bg-amber-50 text-amber-700 border-amber-200",     // Disesuaikan dengan gaya Dashboard
+    ALPHA:  "bg-rose-50 text-rose-600 border-rose-200",
   }
   return (
-    <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 ${cls[status] ?? cls.ALPHA}`}>
+    <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 rounded ${cls[status] ?? cls.ALPHA}`}>
       {status}
     </Badge>
   )
@@ -147,7 +136,7 @@ export default function InternAttendancePage() {
       const result = await res.json()
       if (!res.ok) { setError(result.error); return }
       setCode("")
-      setMessage("Berhasil check in! 🎉")
+      setMessage("Berhasil check in!")
       fetchData()
     } catch {
       setError("Terjadi kesalahan.")
@@ -164,7 +153,7 @@ export default function InternAttendancePage() {
       const result = await res.json()
       if (!res.ok) { setError(result.error); return }
       setShowClockOutModal(false)
-      setMessage("Clock out berhasil. Sampai besok! 👋")
+      setMessage("Clock out berhasil. Sampai besok!")
       fetchData()
     } catch {
       setError("Terjadi kesalahan.")
@@ -187,7 +176,7 @@ export default function InternAttendancePage() {
       if (!res.ok) { setError(result.error); return }
       setShowLeaveModal(false)
       setReason("")
-      setMessage("Izin berhasil diajukan! ✅")
+      setMessage("Izin berhasil diajukan!")
       fetchData()
     } catch {
       setError("Terjadi kesalahan.")
@@ -204,23 +193,18 @@ export default function InternAttendancePage() {
     <main className="min-h-screen bg-white p-5">
       <div className="mx-auto space-y-4">
 
-        {/*  HEADER  */}
+        {/* HEADER  */}
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900">
-            <CalendarDays className="h-4 w-4 text-white" />
-          </div>
           <div>
-            <h1 className="text-base font-semibold text-zinc-900 leading-tight">Absensi</h1>
-            <p className="text-xs text-zinc-400">Catat kehadiran harianmu di sini.</p>
+            {/* Menggunakan warna hijau utama dari Dashboard */}
+            <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">Absensi</h1>
+            <p className="text-xs font-medium text-zinc-500 mt-0.5">Catat kehadiran harianmu di sini.</p>
           </div>
         </div>
 
-        
-
-        {/*  SUCCESS MESSAGE  */}
+        {/* SUCCESS MESSAGE  */}
         {message && (
-          <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-700">
-            <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+          <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 text-xs text-emerald-800">
             {message}
           </div>
         )}
@@ -229,10 +213,11 @@ export default function InternAttendancePage() {
           <PageSkeleton />
         ) : (
           <>
-            {/*  CARD SESI HARI INI  */}
-            <div className="rounded-lg border border-zinc-100 overflow-hidden">
+            {/* CARD SESI HARI INI  */}
+            <div className="rounded-lg border border-zinc-100 overflow-hidden bg-white">
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700">Sesi Hari Ini</span>
+                {/* Judul komponen menggunakan warna hijau utama */}
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Sesi Hari Ini</span>
                 <span className="text-[11px] text-zinc-400">
                   {new Date().toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" })}
                 </span>
@@ -242,7 +227,6 @@ export default function InternAttendancePage() {
                 {/* Tidak ada sesi */}
                 {!todaySession && (
                   <div className="flex items-center gap-2 text-zinc-400 py-4">
-                    <Info className="h-4 w-4 shrink-0" />
                     <p className="text-sm">Tidak ada sesi absensi hari ini.</p>
                   </div>
                 )}
@@ -250,7 +234,6 @@ export default function InternAttendancePage() {
                 {/* Sesi ada tapi sudah expired */}
                 {todaySession && !todayAttendance && new Date() > new Date(todaySession.expires_at) && (
                   <div className="flex items-center gap-2 text-zinc-400 py-4">
-                    <Info className="h-4 w-4 shrink-0" />
                     <p className="text-sm">Sesi absensi hari ini sudah berakhir.</p>
                   </div>
                 )}
@@ -267,14 +250,14 @@ export default function InternAttendancePage() {
                         placeholder="Kode absensi"
                         value={code}
                         onChange={e => setCode(e.target.value.toUpperCase())}
-                        className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 font-mono tracking-widest"
+                        className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 font-mono tracking-widest"
                         required
                       />
                       <Button
                         type="submit"
                         size="sm"
                         disabled={actionLoading}
-                        className="h-8 px-3 text-xs bg-zinc-900 hover:bg-zinc-800 text-white shrink-0"
+                        className="h-8 px-3 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shrink-0"
                       >
                         {actionLoading ? "..." : "Hadir"}
                       </Button>
@@ -292,13 +275,11 @@ export default function InternAttendancePage() {
                       onClick={() => { setError(""); setShowLeaveModal(true) }}
                       className="h-8 text-xs border-zinc-200 text-zinc-600 hover:bg-zinc-50 gap-1.5"
                     >
-                      <FileText className="h-3 w-3" />
                       Ajukan Izin
                     </Button>
 
                     {error && (
                       <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-                        <AlertCircle className="h-3.5 w-3.5" />
                         <AlertDescription className="text-xs">{error}</AlertDescription>
                       </Alert>
                     )}
@@ -320,29 +301,29 @@ export default function InternAttendancePage() {
 
                     {todayAttendance.clock_out_at ? (
                       <div className="flex items-center gap-2 text-xs text-zinc-400">
-                        <ClockIcon className="h-3 w-3" />
                         Clock out pukul{" "}
                         <span className="font-medium text-zinc-700">
                           {formatJam(todayAttendance.clock_out_at)}
                         </span>
-                        <span className="text-zinc-300">·</span>
-                        {hitungDurasi(todayAttendance.clock_in_at, todayAttendance.clock_out_at)}
+                        <span className="text-zinc-200">·</span>
+                        {/* Teks durasi menggunakan warna hijau Dashboard */}
+                        <span className="font-medium text-[#2d5a1b]">
+                          {hitungDurasi(todayAttendance.clock_in_at, todayAttendance.clock_out_at)}
+                        </span>
                       </div>
                     ) : (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => { setError(""); setShowClockOutModal(true) }}
-                        className="h-8 text-xs border-zinc-200 text-zinc-600 hover:bg-zinc-50 gap-1.5"
+                        className="h-7 text-xs border-zinc-200 text-zinc-600 hover:bg-zinc-50 gap-1.5"
                       >
-                        <LogOut className="h-3 w-3" />
                         Clock Out
                       </Button>
                     )}
 
                     {error && (
                       <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-                        <AlertCircle className="h-3.5 w-3.5" />
                         <AlertDescription className="text-xs">{error}</AlertDescription>
                       </Alert>
                     )}
@@ -367,16 +348,16 @@ export default function InternAttendancePage() {
               </div>
             </div>
 
-            {/*  RIWAYAT KEHADIRAN  */}
-            <div className="rounded-lg border border-zinc-100 overflow-hidden">
+            {/* RIWAYAT KEHADIRAN  */}
+            <div className="rounded-lg border border-zinc-100 overflow-hidden bg-white">
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700">Riwayat Kehadiran</span>
+                {/* Judul komponen menggunakan warna hijau utama */}
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Riwayat Kehadiran</span>
                 <span className="text-[11px] text-zinc-400">{history.length} catatan</span>
               </div>
 
               {history.length === 0 ? (
                 <div className="flex flex-col items-center gap-1.5 py-10 text-zinc-300">
-                  <Clock className="h-6 w-6" />
                   <p className="text-xs">Belum ada riwayat kehadiran.</p>
                 </div>
               ) : (
@@ -412,14 +393,11 @@ export default function InternAttendancePage() {
 
       </div>
 
-      {/*  MODAL CLOCK OUT  */}
+      {/* MODAL CLOCK OUT  */}
       <Dialog open={showClockOutModal} onOpenChange={setShowClockOutModal}>
         <DialogContent className="sm:max-w-xs rounded-xl p-5">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
-                <LogOut className="h-3.5 w-3.5 text-zinc-700" />
-              </div>
               Konfirmasi Clock Out
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-400 mt-1">
@@ -429,7 +407,6 @@ export default function InternAttendancePage() {
 
           {error && (
             <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-              <AlertCircle className="h-3.5 w-3.5" />
               <AlertDescription className="text-xs">{error}</AlertDescription>
             </Alert>
           )}
@@ -446,7 +423,7 @@ export default function InternAttendancePage() {
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+              className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium"
               onClick={handleClockOut}
               disabled={actionLoading}
             >
@@ -456,7 +433,7 @@ export default function InternAttendancePage() {
         </DialogContent>
       </Dialog>
 
-      {/*  MODAL IZIN  */}
+      {/* MODAL IZIN  */}
       <Dialog
         open={showLeaveModal}
         onOpenChange={open => {
@@ -467,9 +444,6 @@ export default function InternAttendancePage() {
         <DialogContent className="sm:max-w-xs rounded-xl p-5">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
-                <FileText className="h-3.5 w-3.5 text-zinc-700" />
-              </div>
               Ajukan Izin
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-400 mt-1">
@@ -484,14 +458,13 @@ export default function InternAttendancePage() {
                 placeholder="Contoh: Sakit, ada keperluan keluarga, dll."
                 value={reason}
                 onChange={e => setReason(e.target.value)}
-                className="text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 min-h-20 resize-none"
+                className="text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-20 resize-none"
                 required
               />
             </div>
 
             {error && (
               <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-                <AlertCircle className="h-3.5 w-3.5" />
                 <AlertDescription className="text-xs">{error}</AlertDescription>
               </Alert>
             )}
@@ -510,7 +483,7 @@ export default function InternAttendancePage() {
               <Button
                 type="submit"
                 size="sm"
-                className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+                className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium"
                 disabled={actionLoading}
               >
                 {actionLoading ? "Mengirim..." : "Ajukan"}
