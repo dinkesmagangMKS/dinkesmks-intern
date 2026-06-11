@@ -118,38 +118,39 @@ export function AdminSidebar() {
         </SidebarFooter>
       </Sidebar>
 
+      {/* MODAL LOGOUT (Ukuran disamakan persis dengan modal Buat Sesi: max-w-xs + p-5) */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-4 md:items-center">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm p-4 md:items-center">
+          <div className="w-full max-w-xs rounded-xl bg-white p-5 shadow-xl">
 
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#2d5a1b]/10">
-              <LogOut className="h-5 w-5 text-[#2d5a1b]" />
+            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2d5a1b]/10">
+                <LogOut className="h-3.5 w-3.5 text-[#2d5a1b]" />
+              </div>
+              Keluar dari Akun?
             </div>
 
-            <h2 className="text-base font-semibold text-zinc-900">
-              Keluar dari Akun?
-            </h2>
-
-            <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+            <p className="mt-2 text-xs leading-relaxed text-zinc-400">
               Anda akan keluar dari sesi ini. Pastikan semua pekerjaan sudah
               tersimpan sebelum melanjutkan.
             </p>
 
             {error && (
-              <p className="mt-3 text-sm text-red-500">{error}</p>
+              <p className="mt-3 text-xs text-red-500">{error}</p>
             )}
 
-            <div className="mt-5 flex gap-2">
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={() => { setShowLogoutModal(false); setError(""); }}
-                className="flex-1 rounded-xl border border-[#5a8a2d]/30 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-[#8db83a]/10"
+                disabled={loading}
+                className="flex-1 h-8 text-xs rounded-lg border border-[#5a8a2d]/30 font-medium text-slate-700 transition hover:bg-[#8db83a]/10 disabled:opacity-50"
               >
                 Batal
               </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="flex-1 rounded-xl bg-[#2d5a1b] py-2.5 text-sm font-medium text-white transition hover:bg-[#3d7a25] disabled:opacity-50"
+                className="flex-1 h-8 text-xs rounded-lg bg-[#2d5a1b] font-medium text-white transition hover:bg-[#3d7a25] disabled:opacity-50"
               >
                 {loading ? "Memproses..." : "Ya, Keluar"}
               </button>
