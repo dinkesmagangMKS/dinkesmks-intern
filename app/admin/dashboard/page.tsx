@@ -6,12 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
 import {
-  Users,
-  CalendarCheck,
   Hash,
   AlertCircle,
   Plus,
-  Building2,
 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
@@ -23,27 +20,25 @@ function getSessionStatus(session: any): "AKTIF" | "EXPIRED" | "DITUTUP" {
   return "AKTIF"
 }
 
-// Progress Bar
-
+// Progress Bar - Diubah warna indikatornya menjadi hijau instansi yang rapi
 function ProgressBar({ value, max }: { value: number; max: number }) {
   const pct = max === 0 ? 0 : Math.round((value / max) * 100)
   return (
     <div className="h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden">
       <div
-        className="h-full rounded-full bg-zinc-900 transition-all"
+        className="h-full rounded-full bg-[#2d5a1b] transition-all duration-300"
         style={{ width: `${pct}%` }}
       />
     </div>
   )
 }
 
-// Status Badge
-
+// Status Badge - Warna disesuaikan agar informatif secara fungsional
 function SessionStatusBadge({ status }: { status: string }) {
   const cls: Record<string, string> = {
-    AKTIF:   "bg-zinc-900 text-white border-zinc-900",
-    EXPIRED: "bg-zinc-100 text-zinc-500 border-zinc-200",
-    DITUTUP: "bg-white text-zinc-400 border-zinc-200",
+    AKTIF:   "bg-emerald-50 text-emerald-700 border-emerald-200",
+    EXPIRED: "bg-amber-50 text-amber-700 border-amber-200",
+    DITUTUP: "bg-zinc-50 text-zinc-400 border-zinc-200",
   }
   return (
     <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${cls[status] ?? cls.DITUTUP}`}>
@@ -164,27 +159,28 @@ export default function AdminDashboardPage() {
         {loading ? <DashboardSkeleton /> : (
           <>
             {/* HEADER */}
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900">
-                <Users className="h-4 w-4 text-white" />
-              </div>
+            <div className="flex items-center py-1">
               <div>
-                <h1 className="text-base font-semibold text-zinc-900 leading-tight">Dashboard</h1>
-                <p className="text-xs text-zinc-400">
+                <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">
+                  Dashboard
+                </h1>
+                <p className="text-xs font-medium text-zinc-500 mt-0.5">
                   {new Date().toLocaleDateString("id-ID", {
-                    weekday: "long", day: "numeric", month: "long", year: "numeric",
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
                   })}
                 </p>
               </div>
             </div>
 
-            {/* STAT CARDS */}
             <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
               {[
                 { label: "Total Intern", value: totalInternAktif, cls: "text-zinc-900" },
-                { label: "Hadir",        value: hadirHariIni,     cls: "text-zinc-900" },
-                { label: "Izin",         value: izinHariIni,      cls: "text-zinc-400" },
-                { label: "Belum Hadir",  value: belumHadir,       cls: "text-zinc-300" },
+                { label: "Hadir",        value: hadirHariIni,     cls: "text-[#2d5a1b]" }, 
+                { label: "Izin",         value: izinHariIni,      cls: "text-amber-600" }, 
+                { label: "Belum Hadir",  value: belumHadir,       cls: "text-red-600" },   
               ].map(s => (
                 <div key={s.label} className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5">
                   <p className="text-[11px] text-zinc-400">{s.label}</p>
@@ -194,10 +190,9 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* SESI HARI INI */}
-            <div className="rounded-lg border border-zinc-100 overflow-hidden">
+            <div className="rounded-lg border border-zinc-100 bg-white overflow-hidden">
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <CalendarCheck className="h-3 w-3 text-zinc-400" />
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">
                   Sesi Hari Ini
                 </span>
               </div>
@@ -213,7 +208,7 @@ export default function AdminDashboardPage() {
                         size="sm"
                         disabled={createLoading}
                         onClick={handleCreateSession}
-                        className="h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white gap-1.5"
+                        className="h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white gap-1.5"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         {createLoading ? "Membuat..." : "Buat Sesi"}
@@ -235,7 +230,7 @@ export default function AdminDashboardPage() {
                       </div>
                       <div>
                         <p className="text-[11px] text-zinc-400">Kode Absensi</p>
-                        <p className="font-mono text-lg font-bold tracking-widest text-zinc-900 leading-tight">
+                        <p className="font-mono text-lg font-bold tracking-widest text-[#2d5a1b] leading-tight">
                           {todaySession.code}
                         </p>
                       </div>
@@ -261,11 +256,10 @@ export default function AdminDashboardPage() {
             {/* REKAP PER DIVISI */}
             <div className="rounded-lg border border-zinc-100 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <Building2 className="h-3 w-3 text-zinc-400" />
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">
                   Rekap per Divisi
                 </span>
-                <span className="text-[11px] text-zinc-400">{rekapDivisi.length} divisi</span>
+                <span className="text-[11px] text-zinc-400 font-medium">{rekapDivisi.length} divisi</span>
               </div>
 
               {rekapDivisi.length === 0 ? (
@@ -282,12 +276,12 @@ export default function AdminDashboardPage() {
                           <span className="text-xs font-medium text-zinc-700">{item.divisi}</span>
                           <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
                             <span>
-                              <span className="font-semibold text-zinc-700">{item.hadir}</span>
+                              <span className="font-semibold text-[#2d5a1b]">{item.hadir}</span>
                               <span className="text-zinc-300 mx-0.5">/</span>
                               {item.total}
                             </span>
                             <span className="text-zinc-300">·</span>
-                            <span>{pct}%</span>
+                            <span className="font-medium text-[#2d5a1b]">{pct}%</span>
                           </div>
                         </div>
                         <ProgressBar value={item.hadir} max={item.total} />
@@ -302,7 +296,8 @@ export default function AdminDashboardPage() {
             {role === "ADMIN" && (
               <div className="rounded-lg border border-zinc-100 overflow-hidden">
                 <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                  <span className="text-xs font-medium text-zinc-700">
+                  {/* FIXED: Warna teks diubah ke hijau instansi dengan font-semibold */}
+                  <span className="text-xs font-semibold text-[#2d5a1b] tracking-wide">
                     Intern Divisi — Hari Ini
                   </span>
                 </div>
@@ -320,10 +315,10 @@ export default function AdminDashboardPage() {
                         <div className="flex items-center gap-2">
                           <span className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[11px] font-medium ${
                             intern.statusHariIni === "HADIR"
-                              ? "bg-zinc-900 text-white border-zinc-900"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
                               : intern.statusHariIni === "IZIN"
-                              ? "bg-zinc-100 text-zinc-500 border-zinc-200"
-                              : "bg-white text-zinc-400 border-zinc-200"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"     
+                              : "bg-red-50 text-red-600 border-red-200"           
                           }`}>
                             {intern.statusHariIni === "HADIR" && (
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12l5 5L20 7"/></svg>
@@ -340,7 +335,7 @@ export default function AdminDashboardPage() {
                                 setSelectedIntern({ name: intern.name, reason: intern.reason ?? "-" })
                                 setShowIzinModal(true)
                               }}
-                              className="text-[11px] text-zinc-400 border border-zinc-200 rounded px-1.5 py-0.5 hover:text-zinc-900 hover:border-zinc-400 transition-colors"
+                              className="text-[11px] text-amber-700 border border-amber-200 bg-amber-50/50 rounded px-1.5 py-0.5 hover:bg-amber-50 transition-colors"
                             >
                               Lihat alasan
                             </button>

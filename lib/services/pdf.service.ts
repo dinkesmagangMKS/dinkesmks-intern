@@ -11,181 +11,182 @@ import { createElement } from "react"
 
 const styles = StyleSheet.create({
   page: {
-    padding: 30,
+    paddingTop: 40,
+    paddingHorizontal: 45,
     paddingBottom: 50,
-    fontFamily: "Helvetica",
-    fontSize: 9,
+    fontFamily: "Helvetica", // Menggunakan basis font Arial/Helvetica bawaan PDF
+    fontSize: 9.5,
+    color: "#222222"
+  },
+  
+  // === STYLING KOP SURAT  ===
+  kop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: "#111111",
+    marginBottom: 22,
+    marginTop: -10,
+  },
+  logoWrapper: { 
+    width: 52, 
+    height: 52, 
+    marginRight: 16, 
+    flexShrink: 0 
+  },
+  logoPlaceholder: {
+    width: 52,
+    height: 52,
+    borderWidth: 1,
+    borderColor: "#e4e4e7",
+    marginRight: 16,
+    flexShrink: 0,
+  },
+  kopText: { 
+    alignItems: "center",
+    flexDirection: "column",
+    justifyContent: "center"
+  },
+  kopJudul: { 
+    fontFamily: "Helvetica", 
+    fontSize: 10.5,
+    textAlign: "center",
+    letterSpacing: 0.6,
+    lineHeight: 1.2,
+    color: "#111111"
+  },
+  kopSubjudul: { 
+    fontFamily: "Helvetica-Bold", 
+    fontSize: 14,
+    textAlign: "center",
+    letterSpacing: 0.6,
+    lineHeight: 1.2,
+    marginTop: 2,
     color: "#000000"
   },
-  header: {
-    marginBottom: 15,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#000000"
+  kopAlamat: {
+    fontFamily: "Helvetica",
+    fontSize: 8.5,
+    textAlign: "center",
+    marginTop: 4,
+    color: "#4b5563"
   },
-  title: {
-    fontSize: 14,
-    fontFamily: "Helvetica-Bold",
-    color: "#000000",
-    marginBottom: 2
+  kopTelp: { 
+    fontFamily: "Helvetica", 
+    fontSize: 8.5, 
+    textAlign: "center",
+    color: "#4b5563",
+    marginTop: 1
   },
-  subtitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    color: "#555555",
-    marginBottom: 4
+
+  // === BIODATA  ===
+  biodataSection: {
+    marginBottom: 25,
+    flexDirection: "column",
   },
-  datePrinted: {
-    fontSize: 7,
-    color: "#555555",
-    textAlign: "right",
-    marginTop: -15
-  },
-  infoSection: {
-    marginBottom: 15,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: "#000000",
+  biodataRow: {
     flexDirection: "row",
-    flexWrap: "wrap"
+    marginBottom: 5,
   },
-  infoCol: {
-    width: "50%",
-    marginBottom: 4,
-    flexDirection: "row"
-  },
-  infoLabel: {
-    width: 80,
-    fontSize: 8,
-    color: "#000000",
+  biodataLabel: {
+    width: 95, // Jarak dikunci agar titik dua sejajar lurus vertikal
+    fontSize: 9.5,
+    color: "#111111",
     fontFamily: "Helvetica-Bold"
   },
-  infoValue: {
+  biodataColon: {
+    width: 12,
+    fontSize: 9.5,
+    color: "#111111"
+  },
+  biodataValue: {
     flex: 1,
-    fontSize: 8,
-    color: "#000000"
+    fontSize: 9.5,
+    color: "#222222"
   },
-  sectionTitle: {
-    fontSize: 10,
+
+  // === JUDUL ===
+  titleLaporan: {
+    fontSize: 11.5,
     fontFamily: "Helvetica-Bold",
-    marginBottom: 8,
+    textAlign: "center",
+    textTransform: "uppercase",
+    marginBottom: 3,
+    letterSpacing: 0.6,
     color: "#000000"
   },
+  datePrinted: {
+    fontSize: 8,
+    color: "#52525b",
+    textAlign: "center",
+    marginBottom: 18
+  },
+
+  // === TABEL KEGIATAN  ===
   table: {
     width: "100%",
     borderStyle: "solid",
     borderWidth: 1,
-    borderColor: "#000000"
+    borderColor: "#e4e4e7"
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#f4f4f5", // Latar belakang header abu lembut bersih
     borderBottomWidth: 1,
-    borderBottomColor: "#000000",
-    padding: 5,
+    borderBottomColor: "#e4e4e7",
+    paddingVertical: 8,
+    paddingHorizontal: 6,
     alignItems: "center"
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#000000",
-    padding: 5,
+    borderBottomColor: "#e4e4e7",
+    paddingVertical: 8,
+    paddingHorizontal: 6,
     alignItems: "flex-start"
   },
-  tableColHeaderNo: {
-    width: "6%",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: "#000000",
-    borderRightWidth: 1,
-    borderRightColor: "#000000",
-    paddingRight: 4
-  },
-  tableColHeaderDate: {
-    width: "20%",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: "#000000",
-    borderRightWidth: 1,
-    borderRightColor: "#000000",
-    paddingLeft: 4,
-    paddingRight: 4
-  },
-  tableColHeaderDesc: {
-    width: "50%",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: "#000000",
-    borderRightWidth: 1,
-    borderRightColor: "#000000",
-    paddingLeft: 4,
-    paddingRight: 4
-  },
-  tableColHeaderDoc: {
-    width: "24%",
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    color: "#000000",
-    textAlign: "center",
-    paddingLeft: 4
-  },
-  tableColNo: {
-    width: "6%",
-    fontSize: 8,
-    color: "#000000",
-    borderRightWidth: 1,
-    borderRightColor: "#000000",
-    paddingRight: 4
-  },
-  tableColDate: {
-    width: "20%",
-    fontSize: 8,
-    color: "#000000",
-    borderRightWidth: 1,
-    borderRightColor: "#000000",
-    paddingLeft: 4,
-    paddingRight: 4
-  },
-  tableColDesc: {
-    width: "50%",
-    fontSize: 8,
-    lineHeight: 1.3,
-    color: "#000000",
-    borderRightWidth: 1,
-    borderRightColor: "#000000",
-    paddingLeft: 4,
-    paddingRight: 4
-  },
-  tableColDoc: {
-    width: "24%",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingLeft: 4
-  },
+  
+  // Pembagian ukuran lebar kolom tabel
+  tableColHeaderNo: { width: "5%", fontFamily: "Helvetica-Bold", fontSize: 9 },
+  tableColHeaderDate: { width: "18%", fontFamily: "Helvetica-Bold", fontSize: 9, paddingLeft: 4 },
+  tableColHeaderDesc: { width: "55%", fontFamily: "Helvetica-Bold", fontSize: 9, paddingLeft: 4 },
+  tableColHeaderDoc: { width: "22%", fontFamily: "Helvetica-Bold", fontSize: 9, textAlign: "center" },
+  
+  tableColNo: { width: "5%", fontSize: 9, color: "#4b5563" },
+  tableColDate: { width: "18%", fontSize: 9, color: "#222222", paddingLeft: 4, fontFamily: "Helvetica-Bold" },
+  tableColDesc: { width: "55%", fontSize: 9, lineHeight: 1.4, color: "#222222", paddingLeft: 4 },
+  tableColDoc: { width: "22%", alignItems: "center", justifyContent: "center" },
+
   docImage: {
-    width: 80,
-    height: 55,
-    objectFit: "cover"
+    width: 75,
+    height: 50,
+    objectFit: "cover",
+    borderRadius: 3
   },
   noDocText: {
     fontSize: 8,
-    color: "#555555",
+    color: "#a1a1aa",
     fontStyle: "italic"
   },
+
+  // === FOOTER DOKUMEN ===
   footer: {
     position: "absolute",
-    bottom: 20,
-    left: 30,
-    right: 30,
+    bottom: 25,
+    left: 45,
+    right: 45,
     flexDirection: "row",
     justifyContent: "space-between",
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: "#cccccc"
+    borderTopColor: "#f4f4f5"
   },
   footerText: {
     fontSize: 8,
-    color: "#777777"
+    color: "#a1a1aa"
   }
 })
 
@@ -208,6 +209,7 @@ export type LogbookPDFProps = {
     description: string
     documentation?: string | null
   }[]
+  logoBase64?: string | null
 }
 
 function formatTanggal(date: string): string {
@@ -228,7 +230,7 @@ function formatDate(date: string | null): string {
   })
 }
 
-function LogbookDocument({ intern, logbooks }: LogbookPDFProps) {
+function LogbookDocument({ intern, logbooks, logoBase64 }: LogbookPDFProps) {
   return createElement(
     Document,
     null,
@@ -236,67 +238,75 @@ function LogbookDocument({ intern, logbooks }: LogbookPDFProps) {
       Page,
       { size: "A4", style: styles.page, wrap: true },
 
-      // Header
+      // 1. KOP SURAT INSTANSI
       createElement(
         View,
-        { style: styles.header },
-        createElement(Text, { style: styles.title }, "Laporan Logbook Magang"),
-        createElement(Text, { style: styles.subtitle }, "Dinas Kesehatan Kota Makassar"),
+        { style: styles.kop },
+        logoBase64
+          ? createElement(Image, { src: logoBase64, style: styles.logoWrapper })
+          : createElement(View, { style: styles.logoPlaceholder }),
         createElement(
-          Text,
-          { style: styles.datePrinted },
-          `Dicetak pada ${formatDate(new Date().toISOString())}`
+          View,
+          { style: styles.kopText },
+          createElement(Text, { style: styles.kopJudul }, "PEMERINTAH KOTA MAKASSAR"),
+          createElement(Text, { style: styles.kopSubjudul }, "DINAS KESEHATAN"),
+          createElement(Text, { style: styles.kopAlamat }, "Jl. Teduh Bersinar No.1 Makassar"),
+          createElement(Text, { style: styles.kopTelp }, "Telp. (0411) 881649 Fax. (0411) 887710")
         )
       ),
 
-      // Info intern (Clean monochome profile grid)
+      // 2. BIODATA MAHASISWA RATA KIRI (BORDERLESS)
       createElement(
         View,
-        { style: styles.infoSection },
+        { style: styles.biodataSection },
         createElement(
           View,
-          { style: styles.infoCol },
-          createElement(Text, { style: styles.infoLabel }, "Nama"),
-          createElement(Text, { style: styles.infoValue }, `: ${intern.name}`)
+          { style: styles.biodataRow },
+          createElement(Text, { style: styles.biodataLabel }, "Nama"),
+          createElement(Text, { style: styles.biodataColon }, ":"),
+          createElement(Text, { style: styles.biodataValue }, intern.name)
         ),
         createElement(
           View,
-          { style: styles.infoCol },
-          createElement(Text, { style: styles.infoLabel }, "Universitas"),
-          createElement(Text, { style: styles.infoValue }, `: ${intern.profile?.university ?? "-"}`)
+          { style: styles.biodataRow },
+          createElement(Text, { style: styles.biodataLabel }, "Universitas"),
+          createElement(Text, { style: styles.biodataColon }, ":"),
+          createElement(Text, { style: styles.biodataValue }, intern.profile?.university ?? "-")
         ),
         createElement(
           View,
-          { style: styles.infoCol },
-          createElement(Text, { style: styles.infoLabel }, "Jurusan"),
-          createElement(Text, { style: styles.infoValue }, `: ${intern.profile?.major ?? "-"}`)
+          { style: styles.biodataRow },
+          createElement(Text, { style: styles.biodataLabel }, "Jurusan"),
+          createElement(Text, { style: styles.biodataColon }, ":"),
+          createElement(Text, { style: styles.biodataValue }, intern.profile?.major ?? "-")
         ),
         createElement(
           View,
-          { style: styles.infoCol },
-          createElement(Text, { style: styles.infoLabel }, "Periode Magang"),
+          { style: styles.biodataRow },
+          createElement(Text, { style: styles.biodataLabel }, "Periode Magang"),
+          createElement(Text, { style: styles.biodataColon }, ":"),
           createElement(
             Text,
-            { style: styles.infoValue },
+            { style: styles.biodataValue },
             intern.profile?.start_date && intern.profile?.end_date
-              ? `: ${formatDate(intern.profile.start_date)} — ${formatDate(intern.profile.end_date)}`
-              : ": -"
+              ? `${formatDate(intern.profile.start_date)} — ${formatDate(intern.profile.end_date)}`
+              : "-"
           )
         )
       ),
 
-      // Section title
+      // 3. JUDUL LAPORAN LOGBOOK
+      createElement(Text, { style: styles.titleLaporan }, "LOGBOOK KEGIATAN MAGANG"),
       createElement(
         Text,
-        { style: styles.sectionTitle },
-        `Daftar Kegiatan (${logbooks.length} entri)`
+        { style: styles.datePrinted },
+        `Total Kegiatan: ${logbooks.length} Entri  |  Dicetak pada ${formatDate(new Date().toISOString())}`
       ),
 
-      // Table of logbook entries (Word/Docs style clean monochrome grid table)
+      // 4. TABEL DATA LOGBOOK
       createElement(
         View,
         { style: styles.table },
-        // Table Header
         createElement(
           View,
           { style: styles.tableHeader },
@@ -305,7 +315,6 @@ function LogbookDocument({ intern, logbooks }: LogbookPDFProps) {
           createElement(Text, { style: styles.tableColHeaderDesc }, "Deskripsi Kegiatan"),
           createElement(Text, { style: styles.tableColHeaderDoc }, "Dokumentasi")
         ),
-        // Table Rows
         ...logbooks.map((lb, idx) =>
           createElement(
             View,
@@ -324,7 +333,7 @@ function LogbookDocument({ intern, logbooks }: LogbookPDFProps) {
         )
       ),
 
-      // Footer — fixed on every page
+      // 5. FOOTER HALAMAN (FIXED DI TIAP LAPORAN)
       createElement(
         View,
         { style: styles.footer, fixed: true },
@@ -339,17 +348,9 @@ function LogbookDocument({ intern, logbooks }: LogbookPDFProps) {
   )
 }
 
-/**
- * Generate logbook PDF and return as ArrayBuffer.
- * ArrayBuffer is directly compatible with Web API Response (BodyInit),
- * unlike Node.js Buffer which causes TypeScript errors in strict mode.
- */
 export async function generateLogbookPDF(data: LogbookPDFProps): Promise<ArrayBuffer> {
   const doc = createElement(LogbookDocument, data)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buffer = await renderToBuffer(doc as any)
-  // Copy into a fresh ArrayBuffer to ensure Web API compatibility.
-  // This avoids SharedArrayBuffer union and guarantees BodyInit-compatible type.
   const bytes = new Uint8Array(buffer)
   return bytes.buffer as ArrayBuffer
 }

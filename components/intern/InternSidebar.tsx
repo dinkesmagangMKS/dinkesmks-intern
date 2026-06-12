@@ -58,11 +58,13 @@ export function InternSidebar() {
       <Sidebar className="border-r border-[#5a8a2d]/20 bg-white text-slate-800">
         <SidebarHeader className="h-16 px-4 border-b border-[#5a8a2d]/20 flex flex-row items-center gap-3 shrink-0">
           <div className="p-2 bg-[#2d5a1b] text-white rounded-lg shrink-0">
-            <GraduationCap className="h-5 w-5" />
+            <span className="font-bold text-sm tracking-tight text-[#2d5a1b] truncate">
+              <GraduationCap className="h-5 w-5 text-white" />
+            </span>
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-bold text-sm tracking-tight text-[#2d5a1b] truncate">
-              Internship System
+              Sistem Absensi Magang
             </span>
             <span className="text-[10px] text-[#5a8a2d] font-medium uppercase tracking-wider">
               Dinkes Makassar
@@ -107,54 +109,54 @@ export function InternSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter className="p-4 border-t border-[#5a8a2d]/20">
+        {/* SIDEBAR FOOTER — Menambahkan tombol pemicu modal logout */}
+        <SidebarFooter className="p-3 border-t border-[#5a8a2d]/10">
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-500 transition-all group"
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 transition-all hover:bg-red-50"
           >
-            <LogOut className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-red-500 transition-colors" />
-            Keluar
+            <LogOut className="h-4 w-4 shrink-0 text-red-500" />
+            Keluar 
           </button>
         </SidebarFooter>
       </Sidebar>
 
+      {/* MODAL LOGOUT */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-4 md:items-center">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-
-            <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#2d5a1b]/10">
-              <LogOut className="h-5 w-5 text-[#2d5a1b]" />
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm p-4 md:items-center">
+          <div className="w-full max-w-xs rounded-xl bg-white p-5 shadow-xl border border-zinc-100">
+            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2d5a1b]/10">
+                <LogOut className="h-3.5 w-3.5 text-[#2d5a1b]" />
+              </div>
+              Keluar dari Akun?
             </div>
 
-            <h2 className="text-base font-semibold text-zinc-900">
-              Keluar dari Akun?
-            </h2>
-
-            <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+            <p className="mt-2 text-xs leading-relaxed text-zinc-400">
               Anda akan keluar dari sesi ini. Pastikan semua pekerjaan sudah
               tersimpan sebelum melanjutkan.
             </p>
 
             {error && (
-              <p className="mt-3 text-sm text-red-500">{error}</p>
+              <p className="mt-3 text-xs text-red-500">{error}</p>
             )}
 
-            <div className="mt-5 flex gap-2">
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={() => { setShowLogoutModal(false); setError(""); }}
-                className="flex-1 rounded-xl border border-[#5a8a2d]/30 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-[#8db83a]/10"
+                disabled={loading}
+                className="flex-1 h-8 text-xs rounded-lg border border-zinc-200 font-medium text-slate-700 transition hover:bg-zinc-50 disabled:opacity-50 outline-none"
               >
                 Batal
               </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="flex-1 rounded-xl bg-[#2d5a1b] py-2.5 text-sm font-medium text-white transition hover:bg-[#3d7a25] disabled:opacity-50"
+                className="flex-1 h-8 text-xs rounded-lg bg-[#2d5a1b] font-medium text-white transition hover:bg-[#204013] disabled:opacity-50 outline-none shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
               >
                 {loading ? "Memproses..." : "Ya, Keluar"}
               </button>
             </div>
-
           </div>
         </div>
       )}

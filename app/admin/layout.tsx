@@ -23,10 +23,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!isAuthorized) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-slate-100 p-8">
+      <div className="flex h-screen w-screen items-center justify-center bg-white p-8">
         <div className="space-y-4 w-full max-w-sm">
-          <Skeleton className="h-8 w-62.5 bg-slate-200" />
-          <Skeleton className="h-4 w-75 bg-slate-200" />
+          <Skeleton className="h-8 w-62.5 bg-zinc-100" />
+          <Skeleton className="h-4 w-75 bg-zinc-100" />
         </div>
       </div>
     );
@@ -34,7 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-slate-100">
+      <div className="flex h-screen w-full bg-white">
         <AdminSidebar />
         <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
           <AdminHeader />

@@ -37,16 +37,16 @@ function formatJam(date: string | null): string {
   return new Date(date).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
 }
 
-// Status Badge 
+// Status Badge - Diselaraskan dengan warna semantik dashboard agar tampilannya halus
 
 function StatusBadge({ status }: { status: string }) {
   const cls: Record<string, string> = {
-    AKTIF:    "bg-zinc-900 text-white border-zinc-900",
-    EXPIRED:  "bg-zinc-100 text-zinc-500 border-zinc-200",
-    DITUTUP:  "bg-white text-zinc-400 border-zinc-200",
+    AKTIF:   "bg-emerald-50 text-emerald-700 border-emerald-200",
+    EXPIRED: "bg-amber-50 text-amber-700 border-amber-200",
+    DITUTUP: "bg-zinc-50 text-zinc-400 border-zinc-200",
   }
   return (
-    <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 ${cls[status] ?? cls.EXPIRED}`}>
+    <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 shadow-none ${cls[status] ?? cls.DITUTUP}`}>
       {status}
     </Badge>
   )
@@ -54,12 +54,12 @@ function StatusBadge({ status }: { status: string }) {
 
 function AttendanceStatusBadge({ status }: { status: string }) {
   const cls: Record<string, string> = {
-    HADIR: "bg-zinc-900 text-white border-zinc-900",
-    IZIN:  "bg-zinc-100 text-zinc-500 border-zinc-200",
-    ALPHA: "bg-white text-zinc-400 border-zinc-200",
+    HADIR: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    IZIN:  "bg-amber-50 text-amber-700 border-amber-200",
+    ALPHA: "bg-red-50 text-red-600 border-red-200",
   }
   return (
-    <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 ${cls[status] ?? cls.ALPHA}`}>
+    <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 shadow-none ${cls[status] ?? cls.ALPHA}`}>
       {status}
     </Badge>
   )
@@ -177,25 +177,24 @@ export default function AdminAttendancePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white p-5">
+    <main className="min-h-fit bg-white p-5">
       <div className="mx-auto max-w-4xl space-y-4">
 
-        {/* HEADER */}
-        <div className="flex items-center justify-between">
+       {/* HEADER */}
+        <div className="flex items-center justify-between py-1">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900">
-              <CalendarDays className="h-4 w-4 text-white" />
-            </div>
             <div>
-              <h1 className="text-base font-semibold text-zinc-900 leading-tight">Absensi</h1>
-              <p className="text-xs text-zinc-400">Kelola sesi dan pantau kehadiran intern.</p>
+              {/* FIXED: Diubah ke hijau instansi font-extrabold agar selaras dengan dashboard */}
+              <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">Absensi</h1>
+              <p className="text-xs font-medium text-zinc-500 mt-0.5">Kelola sesi dan pantau kehadiran intern.</p>
             </div>
           </div>
 
+          {/* FIXED: Menggunakan warna utama instansi hijau */}
           <Button
             size="sm"
             onClick={() => { setError(""); setShowCreateModal(true) }}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs h-8 px-3 gap-1.5"
+            className="bg-[#2d5a1b] hover:bg-[#204013] text-white text-xs h-8 px-3 gap-1.5 shadow-none"
           >
             <Plus className="h-3.5 w-3.5" />
             Tambah Sesi
@@ -204,17 +203,18 @@ export default function AdminAttendancePage() {
 
         {/* ERROR GLOBAL */}
         {error && !showCreateModal && (
-          <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
+          <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3 shadow-none">
             <AlertCircle className="h-3.5 w-3.5" />
             <AlertDescription className="text-xs">{error}</AlertDescription>
           </Alert>
         )}
 
         {/* LIST SESI */}
-        <div className="rounded-lg border border-zinc-100 overflow-hidden">
+        <div className="rounded-lg border border-zinc-100 bg-white overflow-hidden">
           <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-            <span className="text-xs font-medium text-zinc-700">Daftar Sesi</span>
-            <span className="text-[11px] text-zinc-400">{sessions.length} sesi</span>
+            {/* FIXED: Judul teks kecil warna hijau instansi font-semibold */}
+            <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Daftar Sesi</span>
+            <span className="text-[11px] text-zinc-400 font-medium">{sessions.length} sesi</span>
           </div>
 
           {loading ? (
@@ -255,7 +255,7 @@ export default function AdminAttendancePage() {
 
                       {/* Hadir/Total */}
                       <div className="flex items-center gap-1 text-[11px] text-zinc-400 border border-zinc-100 rounded px-2 py-0.5 bg-white">
-                        <Users className="h-2.5 w-2.5" />
+                        <Users className="h-2.5 w-2.5 text-zinc-400" />
                         <span>
                           <span className="font-semibold text-zinc-700">{hadir}</span>
                           <span className="text-zinc-300 mx-0.5">/</span>
@@ -270,7 +270,7 @@ export default function AdminAttendancePage() {
                           setSelectedSession(session)
                           setShowDetailModal(true)
                         }}
-                        className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                        className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 shadow-none"
                       >
                         Detail
                       </Button>
@@ -281,7 +281,7 @@ export default function AdminAttendancePage() {
                           size="sm"
                           disabled={closeLoading}
                           onClick={() => handleClose(session.id)}
-                          className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 gap-1"
+                          className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 gap-1 shadow-none"
                         >
                           <X className="h-2.5 w-2.5" />
                           Tutup
@@ -292,7 +292,7 @@ export default function AdminAttendancePage() {
                         size="sm"
                         disabled={deleteLoading}
                         onClick={() => handleDelete(session.id)}
-                        className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 gap-1"
+                        className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 gap-1 shadow-none"
                       >
                         <Trash2 className="h-2.5 w-2.5" />
                         Hapus
@@ -317,9 +317,9 @@ export default function AdminAttendancePage() {
       >
         <DialogContent className="sm:max-w-xs rounded-xl p-5">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
-                <Plus className="h-3.5 w-3.5 text-zinc-700" />
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-[#2d5a1b]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-50 border border-zinc-100">
+                <Plus className="h-3.5 w-3.5 text-[#2d5a1b]" />
               </div>
               Buat Sesi Absensi
             </DialogTitle>
@@ -329,7 +329,7 @@ export default function AdminAttendancePage() {
           </DialogHeader>
 
           {error && (
-            <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
+            <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3 shadow-none">
               <AlertCircle className="h-3.5 w-3.5" />
               <AlertDescription className="text-xs">{error}</AlertDescription>
             </Alert>
@@ -339,7 +339,7 @@ export default function AdminAttendancePage() {
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 h-8 text-xs border-zinc-200"
+              className="flex-1 h-8 text-xs border-zinc-200 shadow-none"
               onClick={() => setShowCreateModal(false)}
               disabled={createLoading}
             >
@@ -347,7 +347,7 @@ export default function AdminAttendancePage() {
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+              className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white shadow-none"
               onClick={handleCreate}
               disabled={createLoading}
             >
@@ -367,9 +367,9 @@ export default function AdminAttendancePage() {
       >
         <DialogContent className="sm:max-w-md rounded-xl p-5">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-100">
-                <CalendarDays className="h-3.5 w-3.5 text-zinc-700" />
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-[#2d5a1b]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-zinc-50 border border-zinc-100">
+                <CalendarDays className="h-3.5 w-3.5 text-[#2d5a1b]" />
               </div>
               Detail Sesi
             </DialogTitle>
@@ -387,7 +387,7 @@ export default function AdminAttendancePage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-zinc-400">Kode</span>
-                  <span className="font-mono text-sm font-semibold tracking-widest text-zinc-900">
+                  <span className="font-mono text-sm font-semibold tracking-widest text-[#2d5a1b]">
                     {selectedSession.code}
                   </span>
                 </div>
@@ -407,12 +407,12 @@ export default function AdminAttendancePage() {
 
               {/* List kehadiran */}
               <div>
-                <p className="text-xs font-medium text-zinc-500 mb-2">Rekap Kehadiran</p>
+                <p className="text-xs font-semibold text-[#2d5a1b] mb-2">Rekap Kehadiran</p>
 
                 {!selectedSession.attendances?.length ? (
                   <p className="text-xs text-zinc-300 text-center py-4">Belum ada data kehadiran.</p>
                 ) : (
-                  <div className="rounded-lg border border-zinc-100 overflow-hidden">
+                  <div className="rounded-lg border border-zinc-100 overflow-hidden bg-white">
                     <div className="grid grid-cols-4 px-3 py-2 bg-zinc-50 border-b border-zinc-100 text-[11px] font-medium text-zinc-400">
                       <span className="col-span-2">Nama</span>
                       <span>Status</span>
@@ -420,12 +420,12 @@ export default function AdminAttendancePage() {
                     </div>
                     <div className="divide-y divide-zinc-50 max-h-56 overflow-y-auto">
                       {selectedSession.attendances.map((a: any, i: number) => (
-                        <div key={i} className="grid grid-cols-4 px-3 py-2.5 text-xs hover:bg-zinc-50">
+                        <div key={i} className="grid grid-cols-4 px-3 py-2.5 text-xs hover:bg-zinc-50 transition-colors">
                           <span className="col-span-2 font-medium text-zinc-800 truncate pr-2">
                             {a.user?.name ?? "-"}
                           </span>
                           <span><AttendanceStatusBadge status={a.status} /></span>
-                          <span className="text-zinc-400">{formatJam(a.clock_in_at)}</span>
+                          <span className="text-zinc-400 font-medium">{formatJam(a.clock_in_at)}</span>
                         </div>
                       ))}
                     </div>

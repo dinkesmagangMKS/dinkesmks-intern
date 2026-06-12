@@ -48,8 +48,7 @@ function hitungDurasi(clockIn: string | null, clockOut: string | null): string {
   return `${h}j ${m}m`
 }
 
-// Skeleton
-
+// Skeleton - Menjaga keselarasan struktur pemuat
 function DashboardSkeleton() {
   return (
     <div className="space-y-4">
@@ -189,42 +188,42 @@ export default function InternDashboardPage() {
 
   return (
     <main className="min-h-screen bg-white p-5">
-      <div className="mx-auto space-y-4">
+      <div className="mx-auto max-w-4xl space-y-4"> {/* FIXED: Menambahkan max-w-4xl agar lebar kontainer konsisten dengan Admin */}
 
         {loading ? <DashboardSkeleton /> : (
           <>
             {/* GREETING */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-1">
               <div>
-                <h1 className="text-base font-semibold text-zinc-900">
+                <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">
                   Halo, {firstName}!
                 </h1>
-                <p className="text-xs text-zinc-400 mt-0.5">
+                <p className="text-xs font-medium text-zinc-500 mt-0.5">
                   {new Date().toLocaleDateString("id-ID", {
-                    weekday: "long", day: "numeric", month: "long",
+                    weekday: "long", day: "numeric", month: "long", year: "numeric"
                   })}
                 </p>
               </div>
 
               {/* Avatar */}
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 text-sm font-semibold shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 text-sm font-semibold shrink-0 border border-zinc-200">
                 {initials}
               </div>
             </div>
 
             {/* SUCCESS MESSAGE */}
             {checkInMessage && (
-              <div className="flex items-center gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-700">
-                <CheckCircle2 className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 text-xs text-emerald-800">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                 {checkInMessage}
               </div>
             )}
 
             {/* CARD KEHADIRAN HARI INI */}
-            <div className="rounded-lg border border-zinc-100 overflow-hidden">
+            <div className="rounded-lg border border-zinc-100 bg-white overflow-hidden">
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <CalendarCheck className="h-3 w-3 text-zinc-400" />
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide flex items-center gap-1.5">
+                  <CalendarCheck className="h-3 w-3 text-[#2d5a1b]" />
                   Kehadiran Hari Ini
                 </span>
               </div>
@@ -249,7 +248,7 @@ export default function InternDashboardPage() {
                         placeholder="Kode absensi"
                         value={code}
                         onChange={e => setCode(e.target.value.toUpperCase())}
-                        className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1 font-mono tracking-widest uppercase"
+                        className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 font-mono tracking-widest uppercase"
                         maxLength={6}
                         required
                       />
@@ -257,7 +256,7 @@ export default function InternDashboardPage() {
                         type="submit"
                         size="sm"
                         disabled={checkInLoading}
-                        className="h-8 px-3 text-xs bg-zinc-900 hover:bg-zinc-800 text-white shrink-0"
+                        className="h-8 px-3 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white shrink-0 font-medium"
                       >
                         {checkInLoading ? "..." : "Hadir"}
                       </Button>
@@ -276,7 +275,8 @@ export default function InternDashboardPage() {
                 {todayAttendance?.status === "HADIR" && (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-white">
+                      {/* FIXED: Menyelaraskan warna badge HADIR dengan gaya admin */}
+                      <span className="inline-flex items-center rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
                         HADIR
                       </span>
                       <span className="text-xs text-zinc-400">
@@ -295,7 +295,9 @@ export default function InternDashboardPage() {
                           {formatJam(todayAttendance.clock_out_at)}
                         </span>
                         <span className="text-zinc-200 mx-0.5">·</span>
-                        {hitungDurasi(todayAttendance.clock_in_at, todayAttendance.clock_out_at)}
+                        <span className="font-medium text-[#2d5a1b]">
+                          {hitungDurasi(todayAttendance.clock_in_at, todayAttendance.clock_out_at)}
+                        </span>
                       </div>
                     ) : (
                       <Button
@@ -315,13 +317,14 @@ export default function InternDashboardPage() {
                 {todayAttendance?.status === "IZIN" && (
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center rounded bg-zinc-100 border border-zinc-200 px-2 py-0.5 text-[11px] font-medium text-zinc-500">
+                      {/* FIXED: Menyelaraskan warna badge IZIN dengan gaya admin */}
+                      <span className="inline-flex items-center rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
                         IZIN
                       </span>
                       <span className="text-xs text-zinc-400">Izin diajukan</span>
                     </div>
                     {todayAttendance.reason && (
-                      <p className="text-xs text-zinc-400 bg-zinc-50 border border-zinc-100 rounded px-2.5 py-1.5">
+                      <p className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-100 rounded px-2.5 py-1.5 leading-relaxed">
                         {todayAttendance.reason}
                       </p>
                     )}
@@ -333,9 +336,9 @@ export default function InternDashboardPage() {
             {/* STAT CARDS */}
             <div className="grid grid-cols-3 gap-2.5">
               {[
-                { label: "Hadir",  value: totalHadir,  cls: "text-zinc-900" },
-                { label: "Izin",   value: totalIzin,   cls: "text-zinc-400" },
-                { label: "Absen",  value: totalAbsen,  cls: "text-zinc-300" },
+                { label: "Hadir",  value: totalHadir,  cls: "text-[#2d5a1b]" }, // FIXED: Identitas warna disamakan dengan Admin
+                { label: "Izin",   value: totalIzin,   cls: "text-amber-600" }, // FIXED: Warna disamakan dengan Admin
+                { label: "Absen",  value: totalAbsen,  cls: "text-red-600" },   // FIXED: Warna disamakan dengan Admin
               ].map(s => (
                 <div key={s.label} className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5">
                   <p className="text-[11px] text-zinc-400">{s.label}</p>
@@ -345,15 +348,15 @@ export default function InternDashboardPage() {
             </div>
 
             {/* CARD LOGBOOK TERAKHIR */}
-            <div className="rounded-lg border border-zinc-100 overflow-hidden">
+            <div className="rounded-lg border border-zinc-100 overflow-hidden bg-white">
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-                <span className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <BookOpen className="h-3 w-3 text-zinc-400" />
+                <span className="text-xs font-bold text-[#2d5a1b] tracking-wide flex items-center gap-1.5">
+                  <BookOpen className="h-3 w-3 text-[#2d5a1b]" />
                   Logbook Terakhir
                 </span>
                 <button
                   onClick={() => router.push("/intern/logbook")}
-                  className="text-[11px] text-zinc-400 hover:text-zinc-900 transition-colors"
+                  className="text-[11px] text-zinc-400 hover:text-[#2d5a1b] font-medium transition-colors"
                 >
                   Lihat semua →
                 </button>
@@ -365,12 +368,12 @@ export default function InternDashboardPage() {
                     <p className="text-[11px] text-zinc-400">
                       {formatTanggal(logbookTerakhir.date)}
                     </p>
-                    <p className="text-sm text-zinc-800 leading-snug line-clamp-3">
+                    <p className="text-sm text-zinc-700 leading-relaxed line-clamp-3">
                       {logbookTerakhir.description}
                     </p>
                     {logbookTerakhir.documentation && (
                       <p className="text-[11px] text-zinc-400 flex items-center gap-1 mt-1">
-                        <FileText className="h-2.5 w-2.5" />
+                        <FileText className="h-2.5 w-2.5 text-zinc-400" />
                         Ada foto dokumentasi
                       </p>
                     )}
@@ -384,7 +387,7 @@ export default function InternDashboardPage() {
                     <Button
                       size="sm"
                       onClick={() => router.push("/intern/logbook")}
-                      className="h-7 text-xs bg-zinc-900 hover:bg-zinc-800 text-white gap-1"
+                      className="h-7 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white gap-1"
                     >
                       <BookOpen className="h-3 w-3" />
                       Isi Sekarang
@@ -439,7 +442,7 @@ export default function InternDashboardPage() {
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white"
+              className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium"
               onClick={handleClockOut}
               disabled={clockOutLoading}
             >

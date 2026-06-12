@@ -124,11 +124,9 @@ export default function AdminProfilePage() {
 
         {/* HEADER */}
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900">
-            <User className="h-4 w-4 text-white" />
-          </div>
+          {/* Ikon logo header dihapus sesuai permintaan */}
           <div>
-            <h1 className="text-base font-semibold text-zinc-900 leading-tight">Profil</h1>
+            <h1 className="text-base font-semibold text-[#2d5a1b] leading-tight">Profil</h1>
             <p className="text-xs text-zinc-400">Informasi dan pengaturan akunmu.</p>
           </div>
         </div>
@@ -139,14 +137,14 @@ export default function AdminProfilePage() {
           <>
             {/* INFO AKUN */}
             <div className="rounded-lg border border-zinc-100 p-4 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 text-base font-semibold shrink-0">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-50 border border-zinc-100 text-[#2d5a1b] text-base font-semibold shrink-0">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-zinc-900 truncate">{user?.name}</p>
                 <p className="text-xs text-zinc-400 truncate mt-0.5">{user?.email}</p>
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                  <span className="inline-flex items-center rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-medium text-white">
+                  <span className="inline-flex items-center rounded bg-[#2d5a1b] px-2 py-0.5 text-[11px] font-medium text-white">
                     {user?.role ?? "ADMIN"}
                   </span>
                   {user?.division?.name && (
@@ -185,7 +183,7 @@ export default function AdminProfilePage() {
                       placeholder={f.placeholder}
                       value={form[f.id as keyof typeof form]}
                       onChange={e => setForm({ ...form, [f.id]: e.target.value })}
-                      className="h-8 text-sm border-zinc-200 focus-visible:ring-zinc-400 focus-visible:ring-1"
+                      className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
                       required
                     />
                   </div>
@@ -217,7 +215,7 @@ export default function AdminProfilePage() {
                   type="submit"
                   size="sm"
                   disabled={passwordLoading}
-                  className="w-full h-8 text-xs bg-zinc-900 hover:bg-zinc-800 text-white gap-1.5"
+                  className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white gap-1.5"
                 >
                   <Lock className="h-3 w-3" />
                   {passwordLoading ? "Menyimpan..." : "Ubah Password"}

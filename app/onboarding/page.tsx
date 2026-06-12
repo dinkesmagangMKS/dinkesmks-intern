@@ -37,19 +37,14 @@ export default function OnboardingPage() {
   }
 
   const handleUploadPhoto = async (file: File): Promise<string> => {
-    // Kompres foto
     const compressed = await imageCompression(file, {
-      maxSizeMB: 0.5,        // target maksimal 500KB
-      maxWidthOrHeight: 800, // resize kalau terlalu besar
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 800,
       useWebWorker: true
     })
 
-    // Buat nama file unik agar tidak bentrok
     const fileName = `photos/${sanitizeFileName(file.name)}`
-
-    // Upload ke Supabase Storage
     const photoUrl = await uploadFile(compressed, fileName)
-
     return photoUrl
   }
 
@@ -70,8 +65,6 @@ export default function OnboardingPage() {
       setLoading(false)
       return
     }
-
-
 
     try {
       let photoUrl = null
@@ -117,23 +110,23 @@ export default function OnboardingPage() {
     <main className="min-h-screen bg-zinc-50 px-4 py-10">
       <div className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm">
         
-        {/* HEADER */}
+        {/* HEADER — Warna teks diubah ke hijau instansi */}
         <div className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#2d5a1b]">
             Lengkapi Profil
           </h1>
 
-          <p className="mt-2 text-sm text-zinc-600">
+          <p className="mt-2 text-sm text-zinc-500">
             Lengkapi data diri untuk melanjutkan ke dashboard intern.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
 
-          {/* FOTO */}
+          {/* FOTO — Header seksi warna hijau */}
           <section className="space-y-4">
             <div>
-              <h2 className="text-base font-semibold text-zinc-900">
+              <h2 className="text-base font-bold text-[#2d5a1b]">
                 Foto Profil
               </h2>
 
@@ -150,14 +143,14 @@ export default function OnboardingPage() {
                   setPhoto(e.target.files[0])
                 }
               }}
-              className="block w-full rounded-xl border border-zinc-300 bg-white px-3 py-3 text-sm text-zinc-700 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-800"
+              className="block w-full rounded-xl border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 file:mr-4 file:rounded-lg file:border-0 file:bg-[#2d5a1b] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#204013] transition-colors"
             />
           </section>
 
-          {/* DATA DIRI */}
+          {/* DATA DIRI — Header seksi warna hijau */}
           <section className="space-y-4">
             <div>
-              <h2 className="text-base font-semibold text-zinc-900">
+              <h2 className="text-base font-bold text-[#2d5a1b]">
                 Data Diri
               </h2>
 
@@ -174,7 +167,7 @@ export default function OnboardingPage() {
                 placeholder="Universitas"
                 value={form.university}
                 onChange={handleChange}
-                className="rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
 
               <input
@@ -183,7 +176,7 @@ export default function OnboardingPage() {
                 placeholder="Jurusan"
                 value={form.major}
                 onChange={handleChange}
-                className="rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
 
               <input
@@ -192,7 +185,7 @@ export default function OnboardingPage() {
                 placeholder="Jobdesk"
                 value={form.jobdesk}
                 onChange={handleChange}
-                className="rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
 
               <input
@@ -201,15 +194,15 @@ export default function OnboardingPage() {
                 placeholder="Nomor HP"
                 value={form.phone}
                 onChange={handleChange}
-                className="rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
             </div>
           </section>
 
-          {/* PERIODE */}
+          {/* PERIODE — Header seksi warna hijau */}
           <section className="space-y-4">
             <div>
-              <h2 className="text-base font-semibold text-zinc-900">
+              <h2 className="text-base font-bold text-[#2d5a1b]">
                 Periode Magang
               </h2>
 
@@ -230,7 +223,7 @@ export default function OnboardingPage() {
                   name="start_date"
                   value={form.start_date}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
                 />
               </div>
 
@@ -244,16 +237,16 @@ export default function OnboardingPage() {
                   name="end_date"
                   value={form.end_date}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                  className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
                 />
               </div>
             </div>
           </section>
 
-          {/* PASSWORD */}
+          {/* PASSWORD — Header seksi warna hijau */}
           <section className="space-y-4">
             <div>
-              <h2 className="text-base font-semibold text-zinc-900">
+              <h2 className="text-base font-bold text-[#2d5a1b]">
                 Password
               </h2>
 
@@ -270,7 +263,7 @@ export default function OnboardingPage() {
                 placeholder="Password Lama"
                 value={form.old_password}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
 
               <input
@@ -279,7 +272,7 @@ export default function OnboardingPage() {
                 placeholder="Password Baru"
                 value={form.new_password}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
 
               <input
@@ -288,7 +281,7 @@ export default function OnboardingPage() {
                 placeholder="Konfirmasi Password Baru"
                 value={form.confirm_password}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm placeholder-zinc-400 outline-none transition-all duration-200 hover:border-[#5a8a2d] focus:border-[#2d5a1b] focus:ring-1 focus:ring-[#2d5a1b] shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] [&:-webkit-autofill]:shadow-[0_0_0_1000px_#f0fdf4_inset_!important]"
               />
             </div>
 
@@ -304,13 +297,13 @@ export default function OnboardingPage() {
             )}
 
             {form.new_password && passwordValidation.valid && (
-              <p className="text-[11px] text-zinc-400 mt-1">Password kuat</p>
+              <p className="text-[11px] text-[#2d5a1b] font-bold mt-1">Password kuat</p>
             )}
           </section>
 
           {/* MESSAGE */}
           {message && (
-            <div className="rounded-xl border border-zinc-200 bg-zinc-100 px-4 py-3 text-sm text-zinc-700">
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600 font-medium text-center">
               {message}
             </div>
           )}
@@ -319,7 +312,7 @@ export default function OnboardingPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-zinc-900 py-3 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-xl bg-[#2d5a1b] py-3 text-sm font-bold text-white transition-all hover:bg-[#204013] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 shadow-md"
           >
             {loading ? "Menyimpan..." : "Simpan Profil"}
           </button>
