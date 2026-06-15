@@ -3,7 +3,6 @@
 import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import imageCompression from "browser-image-compression"
 import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,8 +23,6 @@ import {
   ImageIcon,
   X,
   Pencil,
-  AlertCircle,
-  CheckCircle2,
   FileImage,
   Trash2,
   Download,
@@ -34,7 +31,6 @@ import {
 import Image from "next/image"
 
 // Helpers
-
 function formatTanggal(date: string): string {
   return new Date(date).toLocaleDateString("id-ID", {
     weekday: "short", day: "numeric", month: "short", year: "numeric",
@@ -42,7 +38,6 @@ function formatTanggal(date: string): string {
 }
 
 // Skeleton
-
 function RiwayatSkeleton() {
   return (
     <div className="divide-y divide-zinc-50">
@@ -60,14 +55,12 @@ function RiwayatSkeleton() {
   )
 }
 
-// Main Page
 export default function LogbookInternPage() {
   const [tab, setTab] = useState<"isi" | "riwayat">("isi")
   const [logbooks, setLogbooks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
-  const [deleteError, setDeleteError] = useState("")
 
   const [form, setForm] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -76,20 +69,24 @@ export default function LogbookInternPage() {
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [submitLoading, setSubmitLoading] = useState(false)
-  const [submitError, setSubmitError] = useState("")
-  const [submitMessage, setSubmitMessage] = useState("")
 
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedLogbook, setSelectedLogbook] = useState<any>(null)
   const [editForm, setEditForm] = useState({ description: "", documentation: "" })
+  const [editPhoto, setEditPhoto] = useState<File | null>(null)
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null)
   const [editLoading, setEditLoading] = useState(false)
-  const [editError, setEditError] = useState("")
 
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
 
+  // System Notification States
+  const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
+
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchLogbooks = async (cursor?: string) => {
     try {
@@ -117,17 +114,40 @@ export default function LogbookInternPage() {
     }
   }
 
-  useEffect(() => { fetchLogbooks() }, [])
+  useEffect(() => { 
+    fetchLogbooks() 
+  }, [])
 
-  // Auto-clear message
+  // Auto clear notification after 4 seconds
   useEffect(() => {
-    if (!submitMessage) return
-    const t = setTimeout(() => setSubmitMessage(""), 4000)
+    if (!message && !error) return
+    const t = setTimeout(() => {
+      setMessage("")
+      setError("")
+    }, 4000)
     return () => clearTimeout(t)
-  }, [submitMessage])
+  }, [message, error])
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(photoPreview)
+      }
+    }
+  }, [photoPreview])
+
+  useEffect(() => {
+    return () => {
+      if (editPhotoPreview && editPhotoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(editPhotoPreview)
+      }
+    }
+  }, [editPhotoPreview])
 
   const handleExport = async () => {
     setExportLoading(true)
+    setError("")
+    setMessage("")
     try {
       const res = await fetch("/api/logbooks/export")
 
@@ -154,10 +174,9 @@ export default function LogbookInternPage() {
       a.remove()
       URL.revokeObjectURL(url)
 
-      toast.success("PDF berhasil diunduh!")
+      setMessage("PDF logbook berhasil diunduh!")
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Terjadi kesalahan."
-      toast.error(message)
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh PDF.")
     } finally {
       setExportLoading(false)
     }
@@ -165,6 +184,11 @@ export default function LogbookInternPage() {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null
+    
+    if (photoPreview && photoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(photoPreview)
+    }
+
     setPhoto(file)
     if (file) {
       setPhotoPreview(URL.createObjectURL(file))
@@ -174,15 +198,44 @@ export default function LogbookInternPage() {
   }
 
   const removePhoto = () => {
+    if (photoPreview && photoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(photoPreview)
+    }
     setPhoto(null)
     setPhotoPreview(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
+  const handleEditPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null
+    
+    if (editPhotoPreview && editPhotoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(editPhotoPreview)
+    }
+
+    setEditPhoto(file)
+    if (file) {
+      setEditPhotoPreview(URL.createObjectURL(file))
+    } else {
+      setEditPhotoPreview(null)
+    }
+  }
+
+  const removeEditPhoto = () => {
+    if (editPhotoPreview && editPhotoPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(editPhotoPreview)
+    }
+    setEditPhoto(null)
+    setEditPhotoPreview(null)
+    setEditForm(prev => ({ ...prev, documentation: "" }))
+    if (editFileInputRef.current) editFileInputRef.current.value = ""
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitLoading(true)
-    setSubmitError("")
+    setError("")
+    setMessage("")
 
     try {
       let photoUrl = null
@@ -208,17 +261,15 @@ export default function LogbookInternPage() {
       })
 
       const data = await res.json()
-      if (!res.ok) { setSubmitError(data.error); return }
+      if (!res.ok) { setError(data.error); return }
 
       setForm({ date: new Date().toISOString().split("T")[0], description: "" })
-      setPhoto(null)
-      setPhotoPreview(null)
-      if (fileInputRef.current) fileInputRef.current.value = ""
-      setSubmitMessage("Logbook berhasil disimpan! 📝")
+      removePhoto()
+      setMessage("Logbook berhasil disimpan!")
       setTab("riwayat")
       fetchLogbooks()
     } catch {
-      setSubmitError("Terjadi kesalahan.")
+      setError("Terjadi kesalahan sistem.")
     } finally {
       setSubmitLoading(false)
     }
@@ -227,22 +278,42 @@ export default function LogbookInternPage() {
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     setEditLoading(true)
-    setEditError("")
+    setError("")
+    setMessage("")
 
     try {
+      let photoUrl = editForm.documentation
+
+      if (editPhoto) {
+        const compressed = await imageCompression(editPhoto, {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: 800,
+          useWebWorker: true,
+        })
+        const fileName = `logbooks/${sanitizeFileName(editPhoto.name)}`
+        photoUrl = await uploadFile(compressed, fileName)
+      }
+
       const res = await fetch(`/api/logbooks/${selectedLogbook.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          description: editForm.description,
+          documentation: photoUrl
+        }),
       })
 
       const data = await res.json()
-      if (!res.ok) { setEditError(data.error); return }
+      if (!res.ok) { setError(data.error); return }
 
+      setLogbooks(prev => 
+        prev.map(lb => lb.id === selectedLogbook.id ? { ...lb, description: editForm.description, documentation: photoUrl } : lb)
+      )
+
+      setMessage("Logbook berhasil diperbarui!")
       setShowEditModal(false)
-      fetchLogbooks()
     } catch {
-      setEditError("Terjadi kesalahan.")
+      setError("Terjadi kesalahan sistem.")
     } finally {
       setEditLoading(false)
     }
@@ -250,21 +321,24 @@ export default function LogbookInternPage() {
 
   const handleDelete = async () => {
     setDeleteLoading(true)
-    setDeleteError("")
+    setError("")
+    setMessage("")
     try {
       const res = await fetch(`/api/logbooks/${selectedLogbook.id}`, {
         method: "DELETE"
       })
       const data = await res.json()
       if (!res.ok) {
-        setDeleteError(data.error)
+        setError(data.error)
         return
       }
+      
+      setLogbooks(prev => prev.filter(lb => lb.id !== selectedLogbook.id))
+      setMessage("Logbook berhasil dihapus!")
       setShowDeleteModal(false)
       setSelectedLogbook(null)
-      fetchLogbooks()
     } catch {
-      setDeleteError("Terjadi kesalahan.")
+      setError("Terjadi kesalahan sistem.")
     } finally {
       setDeleteLoading(false)
     }
@@ -286,12 +360,16 @@ export default function LogbookInternPage() {
           </div>
         </div>
 
-        {/* SUCCESS MESSAGE */}
-        {submitMessage && (
+        {/* INLINE SYSTEM NOTIFICATIONS */}
+        {message && (
           <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2.5 text-xs text-emerald-800">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-            {submitMessage}
+            {message}
           </div>
+        )}
+        {error && (
+          <Alert variant="destructive" className="border-red-100 bg-red-50/70 py-2.5 px-3">
+            <AlertDescription className="text-xs">{error}</AlertDescription>
+          </Alert>
         )}
 
         {/* TOGGLE TAB */}
@@ -302,8 +380,13 @@ export default function LogbookInternPage() {
           ] as const).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => setTab(key)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              type="button"
+              onClick={() => {
+                setError("")
+                setMessage("")
+                setTab(key)
+              }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
                 tab === key
                   ? "bg-white text-[#2d5a1b] shadow-sm border border-zinc-100"
                   : "text-zinc-500 hover:text-zinc-700"
@@ -326,7 +409,7 @@ export default function LogbookInternPage() {
                 type="date"
                 value={form.date}
                 onChange={e => setForm({ ...form, date: e.target.value })}
-                className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
+                className="h-8 text-xs border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 cursor-pointer"
                 required
               />
             </div>
@@ -338,7 +421,7 @@ export default function LogbookInternPage() {
                 placeholder="Ceritain apa aja yang kamu kerjain hari ini..."
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
-                className="text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-25 resize-none"
+                className="text-xs border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-25 resize-none"
                 required
               />
             </div>
@@ -369,7 +452,7 @@ export default function LogbookInternPage() {
                   <button
                     type="button"
                     onClick={removePhoto}
-                    className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                    className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors cursor-pointer"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -380,20 +463,12 @@ export default function LogbookInternPage() {
               )}
             </div>
 
-            {/* ERROR SUBMIT */}
-            {submitError && (
-              <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-                <AlertCircle className="h-3.5 w-3.5" />
-                <AlertDescription className="text-xs">{submitError}</AlertDescription>
-              </Alert>
-            )}
-
             {/* Button Submit Utama */}
             <Button
               type="submit"
               size="sm"
               disabled={submitLoading}
-              className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shadow-sm transition-colors"
+              className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shadow-sm transition-colors cursor-pointer"
             >
               {submitLoading ? "Menyimpan..." : "Simpan Logbook"}
             </Button>
@@ -402,9 +477,8 @@ export default function LogbookInternPage() {
 
         {/* TAB RIWAYAT */}
         {tab === "riwayat" && (
-          <div className="rounded-lg border border-zinc-100 overflow-hidden">
+          <div className="rounded-lg border border-zinc-100 overflow-hidden bg-white">
             <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
-              {/* Judul riwayat diubah warna hijau botol */}
               <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Riwayat Logbook</span>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-zinc-400">{logbooks.length} entri</span>
@@ -413,7 +487,7 @@ export default function LogbookInternPage() {
                   size="sm"
                   onClick={handleExport}
                   disabled={exportLoading || logbooks.length === 0}
-                  className="h-6 px-2.5 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-[#2d5a1b] gap-1.5"
+                  className="h-6 px-2.5 text-[11px] border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-[#2d5a1b] gap-1.5 cursor-pointer"
                 >
                   {exportLoading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -430,7 +504,7 @@ export default function LogbookInternPage() {
             ) : logbooks.length === 0 ? (
               <div className="flex flex-col items-center gap-1.5 py-12 text-zinc-300">
                 <BookOpen className="h-6 w-6" />
-                <p className="text-xs">Belum ada logbook nih.</p>
+                <p className="text-xs">Belum ada logbook</p>
               </div>
             ) : (
               <div className="divide-y divide-zinc-50">
@@ -464,12 +538,6 @@ export default function LogbookInternPage() {
                       <p className="text-xs text-zinc-700 mt-0.5 leading-relaxed whitespace-pre-line line-clamp-2">
                         {lb.description}
                       </p>
-                      {lb.documentation && (
-                        <p className="text-[10px] font-medium text-[#2d5a1b] mt-1 flex items-center gap-1">
-                          <ImageIcon className="h-2.5 w-2.5" />
-                          Ada foto dokumentasi
-                        </p>
-                      )}
                     </div>
 
                     {/* Tombol edit */}
@@ -477,12 +545,15 @@ export default function LogbookInternPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        setError("")
+                        setMessage("")
                         setSelectedLogbook(lb)
                         setEditForm({ description: lb.description, documentation: lb.documentation ?? "" })
-                        setEditError("")
+                        setEditPhotoPreview(lb.documentation ?? null)
+                        setEditPhoto(null)
                         setShowEditModal(true)
                       }}
-                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-[#2d5a1b] shrink-0 gap-1"
+                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-[#2d5a1b] shrink-0 gap-1 cursor-pointer"
                     >
                       <Pencil className="h-2.5 w-2.5" />
                       Edit
@@ -493,11 +564,12 @@ export default function LogbookInternPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        setError("")
+                        setMessage("")
                         setSelectedLogbook(lb)
-                        setDeleteError("")
                         setShowDeleteModal(true)
                       }}
-                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 shrink-0 gap-1"
+                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 shrink-0 gap-1 cursor-pointer"
                     >
                       <Trash2 className="h-2.5 w-2.5" />
                       Hapus
@@ -515,7 +587,7 @@ export default function LogbookInternPage() {
             <Button
               variant="outline"
               size="sm"
-              className="w-full h-8 text-xs border-zinc-200 text-zinc-500 hover:text-[#2d5a1b] transition-colors"
+              className="w-full h-8 text-xs border-zinc-200 text-zinc-500 hover:text-[#2d5a1b] transition-colors cursor-pointer"
               onClick={() => fetchLogbooks(nextCursor)}
               disabled={loadingMore}
             >
@@ -528,15 +600,21 @@ export default function LogbookInternPage() {
       {/* MODAL EDIT */}
       <Dialog
         open={showEditModal}
-        onOpenChange={open => {
+        onOpenChange={(open: boolean) => {
           setShowEditModal(open)
-          if (!open) { setSelectedLogbook(null); setEditError("") }
+          if (!open) { 
+            setSelectedLogbook(null)
+            setEditPhoto(null)
+            if (editPhotoPreview && editPhotoPreview.startsWith("blob:")) {
+              URL.revokeObjectURL(editPhotoPreview)
+            }
+            setEditPhotoPreview(null)
+          }
         }}
       >
         <DialogContent className="sm:max-w-sm rounded-xl p-5">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-bold text-[#2d5a1b]">
-              {/* Icon container diganti sewarna hijau botol ringan */}
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-50 text-[#2d5a1b]">
                 <Pencil className="h-3.5 w-3.5" />
               </div>
@@ -551,51 +629,75 @@ export default function LogbookInternPage() {
           )}
 
           <form onSubmit={handleEdit} className="space-y-3">
+            {/* Deskripsi */}
             <div className="space-y-1">
               <Label className="text-xs font-medium text-zinc-600">Deskripsi</Label>
               <Textarea
                 value={editForm.description}
                 onChange={e => setEditForm({ ...editForm, description: e.target.value })}
-                className="text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-22.5 resize-none"
+                className="text-xs border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 min-h-22.5 resize-none"
                 required
               />
             </div>
 
+            {/* Edit Foto Dokumentasi */}
             <div className="space-y-1">
-              <Label className="text-xs font-medium text-zinc-600">URL Foto</Label>
-              <Input
-                value={editForm.documentation}
-                onChange={e => setEditForm({ ...editForm, documentation: e.target.value })}
-                placeholder="https://..."
-                className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
+              <Label className="text-xs font-medium text-zinc-600">Foto Dokumentasi</Label>
+              
+              <input
+                ref={editFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleEditPhotoChange}
               />
-              {editForm.documentation && (
-                <div className="mt-2 rounded-lg overflow-hidden border border-zinc-100">
-                  <Image
-                    src={editForm.documentation}
-                    alt="Preview"
-                    width={600}
-                    height={400}
-                    className="w-full max-h-48 object-cover"
-                    onError={e => (e.currentTarget.style.display = "none")}
-                  />
+
+              {!editPhotoPreview ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => editFileInputRef.current?.click()}
+                  className="w-full h-8 text-xs border-dashed border-zinc-200 text-zinc-500 hover:bg-zinc-50 gap-1.5 cursor-pointer"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  Tambah Foto Dokumentasi
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative rounded-lg overflow-hidden border border-zinc-100">
+                    <img
+                      src={editPhotoPreview}
+                      alt="Preview Edit"
+                      className="w-full max-h-40 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeEditPhoto}
+                      className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors cursor-pointer"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => editFileInputRef.current?.click()}
+                    className="w-full h-7 text-[11px] border-zinc-200 text-zinc-600 hover:text-[#2d5a1b] cursor-pointer"
+                  >
+                    Ganti Foto
+                  </Button>
                 </div>
               )}
             </div>
-
-            {editError && (
-              <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-                <AlertCircle className="h-3.5 w-3.5" />
-                <AlertDescription className="text-xs">{editError}</AlertDescription>
-              </Alert>
-            )}
 
             <div className="flex gap-2 pt-1">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1 h-8 text-xs border-zinc-200"
+                className="flex-1 h-8 text-xs border-zinc-200 cursor-pointer"
                 onClick={() => setShowEditModal(false)}
                 disabled={editLoading}
               >
@@ -604,7 +706,7 @@ export default function LogbookInternPage() {
               <Button
                 type="submit"
                 size="sm"
-                className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium"
+                className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium cursor-pointer"
                 disabled={editLoading}
               >
                 {editLoading ? "Menyimpan..." : "Simpan"}
@@ -617,9 +719,9 @@ export default function LogbookInternPage() {
       {/* MODAL DELETE */}
       <Dialog
         open={showDeleteModal}
-        onOpenChange={open => {
+        onOpenChange={(open: boolean) => {
           setShowDeleteModal(open)
-          if (!open) { setSelectedLogbook(null); setDeleteError("") }
+          if (!open) { setSelectedLogbook(null) }
         }}
       >
         <DialogContent className="sm:max-w-xs rounded-xl p-5">
@@ -643,18 +745,11 @@ export default function LogbookInternPage() {
             Tindakan ini <strong className="text-zinc-700">tidak dapat dibatalkan</strong>.
           </p>
 
-          {deleteError && (
-            <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
-              <AlertCircle className="h-3.5 w-3.5" />
-              <AlertDescription className="text-xs">{deleteError}</AlertDescription>
-            </Alert>
-          )}
-
           <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 h-8 text-xs border-zinc-200"
+              className="flex-1 h-8 text-xs border-zinc-200 cursor-pointer"
               onClick={() => setShowDeleteModal(false)}
               disabled={deleteLoading}
             >
@@ -662,7 +757,7 @@ export default function LogbookInternPage() {
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-8 text-xs bg-red-600 hover:bg-red-700 text-white"
+              className="flex-1 h-8 text-xs bg-red-600 hover:bg-red-700 text-white cursor-pointer"
               onClick={handleDelete}
               disabled={deleteLoading}
             >

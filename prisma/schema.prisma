@@ -17,6 +17,7 @@ enum Role {
 enum AttendanceStatus {
   HADIR
   IZIN
+  SAKIT
 }
 
 model Division {
@@ -66,14 +67,14 @@ model InternProfile {
 }
 
 model AttendanceSession {
-  id                 String    @id @default(cuid())
-  date               DateTime  @db.Date
-  code               String    @unique
-  opened_at          DateTime  @default(now())
-  expires_at         DateTime
-  closed_at          DateTime?
-  created_by         String
-  created_at         DateTime  @default(now())
+  id         String    @id @default(cuid())
+  date       DateTime  @db.Date
+  code       String    @unique
+  opened_at  DateTime  @default(now())
+  expires_at DateTime
+  closed_at  DateTime?
+  created_by String
+  created_at DateTime  @default(now())
 
   creator     User         @relation(fields: [created_by], references: [id])
   attendances Attendance[]

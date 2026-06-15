@@ -10,7 +10,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Image from "next/image"
 
 import {
-  User,
   Mail,
   GraduationCap,
   BookOpen,
@@ -25,9 +24,36 @@ import {
 } from "lucide-react"
 import imageCompression from "browser-image-compression"
 import { sanitizeFileName, uploadFile } from "@/lib/supabase"
-import { validatePassword } from "@/utils/password"
 
-// Helpers
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+
+// TypeScript Interfaces untuk kebersihan kode
+interface UserProfile {
+  university?: string
+  major?: string
+  jobdesk?: string
+  phone?: string
+  start_date?: string
+  end_date?: string
+  photo_url?: string
+  finished_early_at?: string | null
+}
+
+interface UserData {
+  name: string
+  email: string
+  role?: string
+  division?: {
+    name: string
+  }
+  profile?: UserProfile
+}
 
 function formatTanggal(date: string | null): string {
   if (!date) return "-"
@@ -35,8 +61,6 @@ function formatTanggal(date: string | null): string {
     day: "numeric", month: "long", year: "numeric",
   })
 }
-
-// Info Row
 
 function InfoRow({ icon: Icon, label, value }: {
   icon: React.ElementType
@@ -56,12 +80,9 @@ function InfoRow({ icon: Icon, label, value }: {
   )
 }
 
-// Skeleton
-
 function ProfileSkeleton() {
   return (
     <div className="space-y-4 animate-pulse">
-      {/* Avatar area */}
       <div className="flex items-center gap-3 rounded-lg border border-zinc-100 p-4">
         <Skeleton className="h-14 w-14 rounded-full shrink-0" />
         <div className="space-y-1.5">
@@ -70,7 +91,6 @@ function ProfileSkeleton() {
           <Skeleton className="h-3 w-20" />
         </div>
       </div>
-      {/* Info */}
       <div className="rounded-lg border border-zinc-100 p-4 space-y-2">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 py-1">
@@ -86,11 +106,11 @@ function ProfileSkeleton() {
   )
 }
 
-// Main Page
-
 export default function InternProfilePage() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
 
   const [form, setForm] = useState({
     old_password: "",
@@ -113,11 +133,22 @@ export default function InternProfilePage() {
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState("")
   const [editMessage, setEditMessage] = useState("")
-
-  const passwordValidation = validatePassword(form.new_password)
-
   const [photoUploading, setPhotoUploading] = useState(false)
 
+  const passwordLength = form.new_password.length
+  const hasLetter = /[a-zA-Z]/.test(form.new_password)
+  const hasNumber = /[0-9]/.test(form.new_password)
+
+  const getStrengthMessage = () => {
+    if (!form.new_password) return ""
+    if (passwordLength < 8) return "Password terlalu pendek (minimal 8 karakter)"
+    if (!hasLetter || !hasNumber) return "Kekuatan: Sedang (tambahkan kombinasi huruf dan angka)"
+    return "Kekuatan: Kuat"
+  }
+
+  const strengthMessage = getStrengthMessage()
+
+  // Sinkronisasi form edit saat data user berhasil dimuat
   useEffect(() => {
     if (!user) return
     setEditForm({
@@ -130,6 +161,7 @@ export default function InternProfilePage() {
     })
   }, [user])
 
+  // Fetch data awal
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -145,14 +177,21 @@ export default function InternProfilePage() {
     fetchProfile()
   }, [])
 
-  // Auto-clear message
+  // Auto-clear password success message
   useEffect(() => {
     if (!passwordMessage) return
     const t = setTimeout(() => setPasswordMessage(""), 4000)
     return () => clearTimeout(t)
   }, [passwordMessage])
 
-  const handlePassword = async (e: React.FormEvent) => {
+  // Tambahan: Auto-clear profil edit success message
+  useEffect(() => {
+    if (!editMessage) return
+    const t = setTimeout(() => setEditMessage(""), 4000)
+    return () => clearTimeout(t)
+  }, [editMessage])
+
+  const handleTriggerPasswordModal = (e: React.FormEvent) => {
     e.preventDefault()
     setPasswordError("")
 
@@ -165,6 +204,11 @@ export default function InternProfilePage() {
       return
     }
 
+    setShowPasswordModal(true)
+  }
+
+  const handleConfirmPassword = async () => {
+    setPasswordError("")
     setPasswordLoading(true)
     try {
       const res = await fetch("/api/profile/password", {
@@ -176,11 +220,18 @@ export default function InternProfilePage() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) { setPasswordError(data.error); return }
+      if (!res.ok) { 
+        setPasswordError(data.error || "Gagal memperbarui password.")
+        setShowPasswordModal(false) 
+        return 
+      }
+      
       setForm({ old_password: "", new_password: "", confirm_password: "" })
-      setPasswordMessage("Password berhasil diubah! 🔐")
+      setPasswordMessage("Password berhasil diubah!")
+      setShowPasswordModal(false)
     } catch {
-      setPasswordError("Terjadi kesalahan.")
+      setPasswordError("Terjadi kesalahan jaringan.")
+      setShowPasswordModal(false)
     } finally {
       setPasswordLoading(false)
     }
@@ -199,15 +250,21 @@ export default function InternProfilePage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setEditError(data.error)
+        setEditError(data.error || "Gagal memperbarui profil.")
         return
       }
       setIsEditing(false)
-      setEditMessage("Profil berhasil diperbarui! ✨")
-      // Refresh data
-      const refreshed = await fetch("/api/profile")
-      const refreshedData = await refreshed.json()
-      setUser(refreshedData)
+      setEditMessage("Profil berhasil diperbarui!")
+      
+      // Mengoptimalkan pemanggilan state langsung dari response body PATCH (jika API mengembalikannya)
+      // Jika API tidak mengembalikan user data lengkap, gunakan metode fetch ulang Anda sebelumnya.
+      if (data.user) {
+        setUser(data.user)
+      } else {
+        const refreshed = await fetch("/api/profile")
+        const refreshedData = await refreshed.json()
+        setUser(refreshedData)
+      }
     } catch {
       setEditError("Terjadi kesalahan.")
     } finally {
@@ -229,7 +286,6 @@ export default function InternProfilePage() {
       const fileName = `photos/${sanitizeFileName(file.name)}`
       const photoUrl = await uploadFile(compressed, fileName)
 
-      // Update ke database langsung
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -237,7 +293,6 @@ export default function InternProfilePage() {
       })
 
       if (res.ok) {
-        // Refresh user data
         const refreshed = await fetch("/api/profile")
         const refreshedData = await refreshed.json()
         setUser(refreshedData)
@@ -254,11 +309,17 @@ export default function InternProfilePage() {
     ? user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "?"
 
+  const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+    <Label className="text-xs font-medium text-zinc-600">
+      {children} <span className="text-red-500 font-bold">*</span>
+    </Label>
+  )
+
   return (
     <main className="min-h-screen bg-white p-5">
-      <div className="mx-auto space-y-4">
+      <div className="mx-auto space-y-4 max-w-4xl"> {/* Ditambahkan max-w agar layout tidak terlalu lebar di desktop */}
 
-        {/* HEADER  */}
+        {/* HEADER */}
         <div className="flex items-center gap-2.5">
           <div>
             <h1 className="text-2xl font-extrabold text-[#2d5a1b] tracking-tight leading-tight">Profil</h1>
@@ -270,15 +331,14 @@ export default function InternProfilePage() {
           <ProfileSkeleton />
         ) : (
           <>
-            {/* FOTO PROFIL + IDENTITAS  */}
+            {/* FOTO PROFIL + IDENTITAS */}
             <div className="rounded-lg border border-zinc-100 p-4 bg-zinc-50/50">
               <div className="flex items-center gap-4">
-                {/* Avatar + tombol ganti foto */}
                 <div className="relative shrink-0">
                   {profile?.photo_url ? (
                     <Image
                       src={profile.photo_url}
-                      alt={user?.name}
+                      alt={user?.name || "Avatar"}
                       width={56}
                       height={56}
                       className="h-14 w-14 rounded-full object-cover border border-zinc-200"
@@ -323,13 +383,13 @@ export default function InternProfilePage() {
               </div>
             </div>
 
-            {/* INFO LENGKAP  */}
+            {/* INFO LENGKAP */}
             <div className="rounded-lg border border-zinc-100 overflow-hidden">
               <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
                 <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Informasi Akun</span>
                 <button
                   onClick={() => { setIsEditing(!isEditing); setEditError("") }}
-                  className="text-[11px] font-semibold text-zinc-500 hover:text-[#2d5a1b] transition-colors"
+                  className="text-[11px] font-semibold text-zinc-500 hover:text-[#2d5a1b] transition-colors cursor-pointer"
                 >
                   {isEditing ? "Batal" : "Edit Profil"}
                 </button>
@@ -343,9 +403,8 @@ export default function InternProfilePage() {
               )}
 
               {!isEditing ? (
-                // VIEW MODE
                 <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-0">
-                  <InfoRow icon={Mail}          label="Email"       value={user?.email} />
+                  <InfoRow icon={Mail}           label="Email"       value={user?.email} />
                   <InfoRow icon={GraduationCap} label="Universitas" value={profile?.university} />
                   <InfoRow icon={BookOpen}      label="Jurusan"     value={profile?.major} />
                   <InfoRow icon={Briefcase}     label="Jobdesk"     value={profile?.jobdesk} />
@@ -361,7 +420,6 @@ export default function InternProfilePage() {
                   />
                 </div>
               ) : (
-                // EDIT MODE
                 <form onSubmit={handleEdit} className="p-4 space-y-3">
                   {[
                     { id: "university", label: "Universitas", placeholder: "Nama universitas" },
@@ -380,7 +438,6 @@ export default function InternProfilePage() {
                     </div>
                   ))}
 
-                  {/* Periode — disabled kalau FINISHED */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-zinc-600">Tanggal Mulai</Label>
@@ -421,7 +478,7 @@ export default function InternProfilePage() {
                     type="submit"
                     size="sm"
                     disabled={editLoading}
-                    className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shadow-sm transition-colors"
+                    className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium shadow-sm transition-colors cursor-pointer"
                   >
                     {editLoading ? "Menyimpan..." : "Simpan Perubahan"}
                   </Button>
@@ -429,13 +486,13 @@ export default function InternProfilePage() {
               )}
             </div>
 
-            {/* GANTI PASSWORD  */}
+            {/* GANTI PASSWORD */}
             <div className="rounded-lg border border-zinc-100 overflow-hidden">
               <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
                 <span className="text-xs font-bold text-[#2d5a1b] tracking-wide">Keamanan Akun</span>
               </div>
 
-              <form onSubmit={handlePassword} className="p-4 space-y-3">
+              <form onSubmit={handleTriggerPasswordModal} className="p-4 space-y-3">
                 {passwordMessage && (
                   <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-xs text-emerald-800">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
@@ -443,38 +500,51 @@ export default function InternProfilePage() {
                   </div>
                 )}
 
-                {[
-                  { id: "old_password",     label: "Password Lama",         placeholder: "Masukkan password lama" },
-                  { id: "new_password",     label: "Password Baru",         placeholder: "Minimal 8 karakter" },
-                  { id: "confirm_password", label: "Konfirmasi Password Baru", placeholder: "Ulangi password baru" },
-                ].map(f => (
-                  <div key={f.id} className="space-y-1">
-                    <Label className="text-xs font-medium text-zinc-600">{f.label}</Label>
-                    <Input
-                      type="password"
-                      placeholder={f.placeholder}
-                      value={form[f.id as keyof typeof form]}
-                      onChange={e => setForm({ ...form, [f.id]: e.target.value })}
-                      className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1"
-                      required
-                    />
-                  </div>
-                ))}
+                <div className="space-y-1">
+                  <RequiredLabel>Password Lama</RequiredLabel>
+                  <Input
+                    type="password"
+                    placeholder="Masukkan password lama"
+                    value={form.old_password}
+                    onChange={e => setForm({ ...form, old_password: e.target.value })}
+                    className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 focus-visible:border-[#2d5a1b]"
+                    required
+                  />
+                </div>
 
-                {form.new_password && !passwordValidation.valid && (
-                  <ul className="space-y-0.5 mt-1">
-                    {passwordValidation.errors.map(err => (
-                      <li key={err} className="text-[11px] text-zinc-400 flex items-center gap-1">
-                        <span className="h-1 w-1 rounded-full bg-zinc-300 shrink-0" />
-                        {err}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="space-y-1">
+                  <RequiredLabel>Password Baru</RequiredLabel>
+                  <Input
+                    type="password"
+                    placeholder="Minimal 8 karakter"
+                    value={form.new_password}
+                    onChange={e => setForm({ ...form, new_password: e.target.value })}
+                    className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 focus-visible:border-[#2d5a1b]"
+                    required
+                  />
+                  {strengthMessage && (
+                    <p className={`text-[11px] font-medium mt-1 ${strengthMessage.includes("Kuat") ? "text-emerald-600" : strengthMessage.includes("Sedang") ? "text-amber-600" : "text-red-500"}`}>
+                      {strengthMessage}
+                    </p>
+                  )}
+                </div>
 
-                {form.new_password && passwordValidation.valid && (
-                  <p className="text-[11px] text-emerald-600 font-medium mt-1">✓ Password memenuhi kriteria</p>
-                )}
+                <div className="space-y-1">
+                  <RequiredLabel>Konfirmasi Password Baru</RequiredLabel>
+                  <Input
+                    type="password"
+                    placeholder="Ulangi password baru"
+                    value={form.confirm_password}
+                    onChange={e => setForm({ ...form, confirm_password: e.target.value })}
+                    className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 focus-visible:border-[#2d5a1b]"
+                    required
+                  />
+                  {form.confirm_password && (
+                    <p className={`text-[11px] font-medium mt-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
+                      {form.new_password === form.confirm_password ? "✓ Password cocok" : "Password tidak sama"}
+                    </p>
+                  )}
+                </div>
 
                 {passwordError && (
                   <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
@@ -486,14 +556,53 @@ export default function InternProfilePage() {
                 <Button
                   type="submit"
                   size="sm"
-                  disabled={passwordLoading}
-                  className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium gap-1.5 shadow-sm transition-colors"
+                  className="w-full h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
                   <Lock className="h-3 w-3" />
-                  {passwordLoading ? "Menyimpan..." : "Ubah Password"}
+                  Ubah Password
                 </Button>
               </form>
             </div>
+
+            {/* MODAL SHADCN DIALOG KONFIRMASI PASWORD */}
+            <Dialog
+              open={showPasswordModal}
+              onOpenChange={(open) => setShowPasswordModal(open)}
+            >
+              <DialogContent className="sm:max-w-xs rounded-xl p-5">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2d5a1b]/10">
+                      <Lock className="h-3.5 w-3.5 text-[#2d5a1b]" />
+                    </div>
+                    Ubah Password Akun?
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-zinc-400 mt-1">
+                    Anda akan memperbarui password akses akun ini. Pastikan Anda mengingat password baru yang telah dibuat ya.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="flex gap-2 mt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 text-xs border-zinc-200 cursor-pointer"
+                    onClick={() => setShowPasswordModal(false)}
+                    disabled={passwordLoading}
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium cursor-pointer"
+                    onClick={handleConfirmPassword}
+                    disabled={passwordLoading}
+                  >
+                    {passwordLoading ? "Proses..." : "Ya, Ubah"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </div>

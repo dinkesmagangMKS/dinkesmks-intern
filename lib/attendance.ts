@@ -23,8 +23,9 @@ export async function autoClockOutIfNeeded(
 
   const clockOutTime = autoClockOutTime > now ? now : autoClockOutTime
 
+  const clockInTime = attendance.clock_in_at ? new Date(attendance.clock_in_at) : now
   const durationMinutes = Math.floor(
-    (clockOutTime.getTime() - new Date(attendance.clock_in_at).getTime()) / 60000
+    (clockOutTime.getTime() - clockInTime.getTime()) / 60000
   )
 
   return await prisma.attendance.update({

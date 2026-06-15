@@ -9,6 +9,7 @@ import {
   UserCircle,
   LogOut,
   GraduationCap,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +22,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useState } from "react";
+
+// Import komponen dasar shadcn dialog
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 export function InternSidebar() {
   const pathname = usePathname();
@@ -109,57 +121,71 @@ export function InternSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        {/* SIDEBAR FOOTER — Menambahkan tombol pemicu modal logout */}
+        {/* SIDEBAR FOOTER — Tombol Pemicu Konfirmasi */}
         <SidebarFooter className="p-3 border-t border-[#5a8a2d]/10">
           <button
-            onClick={() => setShowLogoutModal(true)}
-            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 transition-all hover:bg-red-50"
+            type="button"
+            onClick={() => {
+              setOpenMobile(false); // Menutup otomatis laci sidebar mobile di latar belakang
+              setShowLogoutModal(true);
+            }}
+            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 transition-all hover:bg-red-50 cursor-pointer"
           >
             <LogOut className="h-4 w-4 shrink-0 text-red-500" />
-            Keluar 
+            Keluar
           </button>
         </SidebarFooter>
       </Sidebar>
 
-      {/* MODAL LOGOUT */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm p-4 md:items-center">
-          <div className="w-full max-w-xs rounded-xl bg-white p-5 shadow-xl border border-zinc-100">
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+      {/* MODAL SHADCN DIALOG LOGOUT (STRUKTUR IDENTIK DENGAN CLOCK OUT) */}
+      <Dialog
+        open={showLogoutModal}
+        onOpenChange={(open) => {
+          setShowLogoutModal(open);
+          if (!open) setError("");
+        }}
+      >
+        <DialogContent className="sm:max-w-xs rounded-xl p-5">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#2d5a1b]/10">
                 <LogOut className="h-3.5 w-3.5 text-[#2d5a1b]" />
               </div>
               Keluar dari Akun?
-            </div>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400 mt-1">
+              Anda akan keluar dari sesi ini. Pastikan semua aktivitas hari ini sudah disimpan dengan benar ya.
+            </DialogDescription>
+          </DialogHeader>
 
-            <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-              Anda akan keluar dari sesi ini. Pastikan semua pekerjaan sudah
-              tersimpan sebelum melanjutkan.
-            </p>
+          {error && (
+            <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3">
+              <AlertCircle className="h-3.5 w-3.5" />
+              <AlertDescription className="text-xs">{error}</AlertDescription>
+            </Alert>
+          )}
 
-            {error && (
-              <p className="mt-3 text-xs text-red-500">{error}</p>
-            )}
-
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => { setShowLogoutModal(false); setError(""); }}
-                disabled={loading}
-                className="flex-1 h-8 text-xs rounded-lg border border-zinc-200 font-medium text-slate-700 transition hover:bg-zinc-50 disabled:opacity-50 outline-none"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleLogout}
-                disabled={loading}
-                className="flex-1 h-8 text-xs rounded-lg bg-[#2d5a1b] font-medium text-white transition hover:bg-[#204013] disabled:opacity-50 outline-none shadow-[0_1px_2px_0_rgba(0,0,0,0.05)]"
-              >
-                {loading ? "Memproses..." : "Ya, Keluar"}
-              </button>
-            </div>
+          <div className="flex gap-2 mt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 h-8 text-xs border-zinc-200 cursor-pointer"
+              onClick={() => setShowLogoutModal(false)}
+              disabled={loading}
+            >
+              Batal
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white font-medium cursor-pointer"
+              onClick={handleLogout}
+              disabled={loading}
+            >
+              {loading ? "Proses..." : "Ya, Keluar"}
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

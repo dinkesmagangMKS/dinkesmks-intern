@@ -17,9 +17,11 @@ import {
   Clock, 
   User, 
   Building2, 
-  GraduationCap 
+  GraduationCap,
+  Loader2,
+  Trash2
 } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
@@ -178,18 +180,60 @@ export default function InternDetailPage() {
         console.error(err)
         setFetchError("Gagal memuat data intern.")
       } finally {
-        setLoading(false)
+        loading && setLoading(false)
       }
     }
     if (id) fetchIntern()
   }, [id])
 
-  const handleFinish = async () => { /* ... */ }
-  const handleDelete = async () => { /* ... */ }
+  const handleFinish = async () => {
+    setFinishLoading(true)
+    setFinishError("")
+    try {
+      const response = await fetch(`/api/interns/${id}/finish`, {
+        method: "POST"
+      })
+      if (!response.ok) throw new Error("Gagal memperbarui status")
+      
+      setIntern((prev: any) => ({ ...prev, status: "FINISHED" }))
+      setShowModal(false)
+    } catch (err) {
+      setFinishError("Gagal menandai selesai intern. Silakan coba lagi.")
+    } finally {
+      setFinishLoading(false)
+    }
+  }
+
+  // IMPLEMENTASI RE REQ: Aksi Hapus Akun Intern
+  const handleDelete = async () => {
+    setDeleteLoading(true)
+    setDeleteError("")
+    try {
+      const response = await fetch(`/api/interns/${id}`, {
+        method: "DELETE"
+      })
+      if (!response.ok) throw new Error("Gagal menghapus data intern")
+      
+      setShowDeleteModal(false)
+      // Redirect kembali ke halaman list management intern admin
+      router.push("/admin/intern")
+      router.refresh()
+    } catch (err) {
+      setDeleteError("Gagal menghapus akun intern. Silakan coba lagi.")
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+  
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!resetPassword) {
+      setResetError("Password baru tidak boleh kosong")
+      return
+    }
+    
     setResetLoading(true); setResetError(""); setResetMessage("")
-    setTimeout(() => { // Mock success for demo
+    setTimeout(() => { 
       setResetLoading(false); setShowResetModal(false); setResetPassword("")
       setResetMessage("Password berhasil direset. Intern akan diminta ganti password saat login.")
     }, 1000)
@@ -368,15 +412,15 @@ export default function InternDetailPage() {
             </div>
             
             <div className="p-4 space-y-4">
-              <div className="grid grid-cols-3 lg:grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 gap-2.5">
                 {[
                   { label: "Hadir", value: intern.stats?.totalHadir ?? 0, cls: "text-[#2d5a1b]" }, 
                   { label: "Izin", value: intern.stats?.totalIzin ?? 0, cls: "text-amber-600" }, 
                   { label: "Absen", value: intern.stats?.totalAbsen ?? 0, cls: "text-red-600" }, 
                 ].map(s => (
-                  <div key={s.label} className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5 flex items-center justify-between lg:flex-col lg:items-start lg:justify-center">
+                  <div key={s.label} className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5 flex items-center justify-between">
                     <p className="text-[11px] text-zinc-400">{s.label}</p>
-                    <p className={`text-lg font-semibold mt-0.5 ${s.cls}`}>{s.value} <span className="text-xs font-medium text-zinc-400">Hari</span></p>
+                    <p className={`text-sm font-semibold ${s.cls}`}>{s.value} <span className="text-xs font-medium text-zinc-400">Hari</span></p>
                   </div>
                 ))}
               </div>
@@ -547,9 +591,9 @@ export default function InternDetailPage() {
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* ==================== EXISTING MODALS ==================== */}
       <Dialog open={showIzinModal} onOpenChange={open => { setShowIzinModal(open); if (!open) setSelectedIzin(null) }}>
-        <DialogContent className="sm:max-w-xs rounded-xl p-5 border-zinc-100">
+        <DialogContent className="sm:max-w-xs rounded-xl p-5 border-zinc-100 bg-white">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-zinc-900">Alasan Izin</DialogTitle>
           </DialogHeader>
@@ -565,7 +609,7 @@ export default function InternDetailPage() {
       </Dialog>
 
       <Dialog open={showLogbookModal} onOpenChange={open => { setShowLogbookModal(open); if (!open) setSelectedLogbook(null) }}>
-        <DialogContent className="sm:max-w-md rounded-xl p-5 border-zinc-100">
+        <DialogContent className="sm:max-w-md rounded-xl p-5 border-zinc-100 bg-white">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-zinc-900">Detail Aktivitas Tugas</DialogTitle>
           </DialogHeader>
@@ -590,6 +634,152 @@ export default function InternDetailPage() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ==================== NEW MODALS ==================== */}
+      
+      {/* 1. MODAL TANDAI SELESAI */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-md rounded-xl p-5 border-zinc-100 bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-zinc-900">Konfirmasi Selesai Magang</DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 pt-1">
+              Apakah Anda yakin ingin menandai masa magang <span className="font-semibold text-zinc-800">{intern?.name}</span> sebagai <span className="font-semibold text-[#2d5a1b]">Selesai</span>? Tindakan ini akan mengarsipkan profil data intern secara permanen.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {finishError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2.5 text-xs text-red-800">
+              <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0 mt-0.5" />
+              <span>{finishError}</span>
+            </div>
+          )}
+
+          <DialogFooter className="flex sm:justify-end gap-2 pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={finishLoading}
+              onClick={() => setShowModal(false)}
+              className="h-8 text-xs border-zinc-200 hover:bg-zinc-50 text-zinc-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={finishLoading}
+              onClick={handleFinish}
+              className="h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white flex items-center gap-1.5"
+            >
+              {finishLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+              Ya, Tandai Selesai
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* IMPLEMENTASI RE REQ: 2. MODAL HAPUS AKUN (DELETE MODAL) */}
+      <Dialog open={showDeleteModal} onOpenChange={(open) => { setShowDeleteModal(open); if(!open) setDeleteError("") }}>
+        <DialogContent className="sm:max-w-md rounded-xl p-5 border-zinc-100 bg-white">
+          <DialogHeader>
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-red-50 mb-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+            </div>
+            <DialogTitle className="text-base font-bold text-center text-zinc-900">Hapus Akun Intern</DialogTitle>
+            <DialogDescription className="text-xs text-center text-zinc-500 pt-1">
+              Apakah Anda yakin ingin menghapus akun pendaftaran milik <span className="font-semibold text-zinc-800">{intern?.name}</span>? Data registrasi yang belum aktif ini akan dihapus permanen dari sistem database.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {deleteError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2.5 text-xs text-red-800">
+              <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0 mt-0.5" />
+              <span>{deleteError}</span>
+            </div>
+          )}
+
+          <DialogFooter className="flex sm:justify-center gap-2 pt-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={deleteLoading}
+              onClick={() => setShowDeleteModal(false)}
+              className="h-8 text-xs flex-1 border-zinc-200 hover:bg-zinc-50 text-zinc-700"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={deleteLoading}
+              onClick={handleDelete}
+              className="h-8 text-xs flex-1 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5"
+            >
+              {deleteLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+              Ya, Hapus Permanen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 3. MODAL RESET PASSWORD */}
+      <Dialog open={showResetModal} onOpenChange={(open) => { setShowResetModal(open); if(!open) setResetPassword("") }}>
+        <DialogContent className="sm:max-w-sm rounded-xl p-5 border-zinc-100 bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-zinc-900">Reset Password Intern</DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 pt-1">
+              Masukkan password baru untuk akun <span className="font-semibold text-zinc-800">{intern?.name}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleResetPassword} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="new-password" className="text-xs font-semibold text-zinc-600">Password Baru</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="••••••••"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+                disabled={resetLoading}
+                className="h-9 text-xs border-zinc-200 focus-visible:ring-[#2d5a1b]"
+              />
+            </div>
+
+            {resetError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2.5 text-xs text-red-800">
+                <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0 mt-0.5" />
+                <span>{resetError}</span>
+              </div>
+            )}
+
+            <DialogFooter className="flex sm:justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={resetLoading}
+                onClick={() => setShowResetModal(false)}
+                className="h-8 text-xs border-zinc-200 hover:bg-zinc-50 text-zinc-700"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={resetLoading}
+                className="h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white flex items-center gap-1.5"
+              >
+                {resetLoading && <Loader2 className="h-3 w-3 animate-spin" />}
+                Simpan Password
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
