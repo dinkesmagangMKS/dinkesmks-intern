@@ -53,19 +53,6 @@ async function main() {
     },
   });
 
-  // Intern
-  await prisma.user.upsert({
-    where: { email: "intern3@ims.com" },
-    update: {},
-    create: {
-      name: "Intern PSDK",
-      email: "intern3@ims.com",
-      password: hashedPassword,
-      role: "INTERN",
-      division_id: psdk?.id,
-    },
-  });
-
   console.log("Seed selesai");
 }
 
