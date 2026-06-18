@@ -6,17 +6,17 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { 
-  AlertCircle, 
-  BookOpen, 
-  CalendarDays, 
-  CheckCircle2, 
-  ChevronRight, 
-  FileImage, 
-  KeyRound, 
-  Clock, 
-  User, 
-  Building2, 
+import {
+  AlertCircle,
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  FileImage,
+  KeyRound,
+  Clock,
+  User,
+  Building2,
   GraduationCap,
   Loader2,
   Trash2
@@ -57,7 +57,7 @@ function formatJamMonitoring(date: string | null): string {
   if (!date) return "-"
   try {
     return new Date(date).toLocaleTimeString("id-ID", {
-      hour: "2-digit", 
+      hour: "2-digit",
       minute: "2-digit"
     })
   } catch {
@@ -105,8 +105,8 @@ function AttendanceBadge({ status }: { status: string }) {
   }
   return (
     <span className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[11px] font-medium ${cls[status] ?? cls.ABSEN}`}>
-      {status === "HADIR" && <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12l5 5L20 7"/></svg>}
-      {status === "IZIN" && <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
+      {status === "HADIR" && <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12l5 5L20 7" /></svg>}
+      {status === "IZIN" && <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
       {status === "HADIR" ? "Hadir" : status === "IZIN" ? "Izin" : "Absen"}
     </span>
   )
@@ -147,7 +147,7 @@ export default function InternDetailPage() {
 
   const [intern, setIntern] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  
+
   const [showModal, setShowModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
@@ -194,7 +194,7 @@ export default function InternDetailPage() {
         method: "POST"
       })
       if (!response.ok) throw new Error("Gagal memperbarui status")
-      
+
       setIntern((prev: any) => ({ ...prev, status: "FINISHED" }))
       setShowModal(false)
     } catch (err) {
@@ -213,7 +213,7 @@ export default function InternDetailPage() {
         method: "DELETE"
       })
       if (!response.ok) throw new Error("Gagal menghapus data intern")
-      
+
       setShowDeleteModal(false)
       // Redirect kembali ke halaman list management intern admin
       router.push("/admin/intern")
@@ -224,16 +224,16 @@ export default function InternDetailPage() {
       setDeleteLoading(false)
     }
   }
-  
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!resetPassword) {
       setResetError("Password baru tidak boleh kosong")
       return
     }
-    
+
     setResetLoading(true); setResetError(""); setResetMessage("")
-    setTimeout(() => { 
+    setTimeout(() => {
       setResetLoading(false); setShowResetModal(false); setResetPassword("")
       setResetMessage("Password berhasil direset. Intern akan diminta ganti password saat login.")
     }, 1000)
@@ -270,7 +270,7 @@ export default function InternDetailPage() {
   return (
     <main className="min-h-fit bg-white p-5">
       <div className="mx-auto max-w-6xl space-y-4">
-        
+
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1">
           <div>
@@ -344,14 +344,14 @@ export default function InternDetailPage() {
               </div>
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 mb-0.5">
               <h2 className="text-lg font-bold text-zinc-900 truncate">{intern.name}</h2>
               <StatusBadge status={intern.status} />
             </div>
             <p className="text-xs text-zinc-500 truncate">{intern.email}</p>
-            
+
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-zinc-100">
               <div>
                 <p className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide">Lembaga</p>
@@ -402,7 +402,7 @@ export default function InternDetailPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-          
+
           {/* PANEL STATISTIK */}
           <div className="lg:col-span-1 rounded-lg border border-zinc-100 bg-white overflow-hidden">
             <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-100">
@@ -410,13 +410,13 @@ export default function InternDetailPage() {
                 Statistik Kehadiran
               </span>
             </div>
-            
+
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 gap-2.5">
                 {[
-                  { label: "Hadir", value: intern.stats?.totalHadir ?? 0, cls: "text-[#2d5a1b]" }, 
-                  { label: "Izin", value: intern.stats?.totalIzin ?? 0, cls: "text-amber-600" }, 
-                  { label: "Absen", value: intern.stats?.totalAbsen ?? 0, cls: "text-red-600" }, 
+                  { label: "Hadir", value: intern.stats?.totalHadir ?? 0, cls: "text-[#2d5a1b]" },
+                  { label: "Izin", value: intern.stats?.totalIzin ?? 0, cls: "text-amber-600" },
+                  { label: "Absen", value: intern.stats?.totalAbsen ?? 0, cls: "text-red-600" },
                 ].map(s => (
                   <div key={s.label} className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5 flex items-center justify-between">
                     <p className="text-[11px] text-zinc-400">{s.label}</p>
@@ -455,11 +455,10 @@ export default function InternDetailPage() {
                   key={key}
                   type="button"
                   onClick={() => setActiveTab(key)}
-                  className={`pb-2.5 text-xs font-bold tracking-wide transition-colors relative ${
-                    activeTab === key
-                      ? "text-[#2d5a1b]"
-                      : "text-zinc-400 hover:text-zinc-700"
-                  }`}
+                  className={`pb-2.5 text-xs font-bold tracking-wide transition-colors relative ${activeTab === key
+                    ? "text-[#2d5a1b]"
+                    : "text-zinc-400 hover:text-zinc-700"
+                    }`}
                 >
                   {label}
                   {activeTab === key && (
@@ -638,7 +637,7 @@ export default function InternDetailPage() {
       </Dialog>
 
       {/* ==================== NEW MODALS ==================== */}
-      
+
       {/* 1. MODAL TANDAI SELESAI */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="sm:max-w-md rounded-xl p-5 border-zinc-100 bg-white">
@@ -648,7 +647,7 @@ export default function InternDetailPage() {
               Apakah Anda yakin ingin menandai masa magang <span className="font-semibold text-zinc-800">{intern?.name}</span> sebagai <span className="font-semibold text-[#2d5a1b]">Selesai</span>? Tindakan ini akan mengarsipkan profil data intern secara permanen.
             </DialogDescription>
           </DialogHeader>
-          
+
           {finishError && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2.5 text-xs text-red-800">
               <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0 mt-0.5" />
@@ -682,7 +681,7 @@ export default function InternDetailPage() {
       </Dialog>
 
       {/* IMPLEMENTASI RE REQ: 2. MODAL HAPUS AKUN (DELETE MODAL) */}
-      <Dialog open={showDeleteModal} onOpenChange={(open) => { setShowDeleteModal(open); if(!open) setDeleteError("") }}>
+      <Dialog open={showDeleteModal} onOpenChange={(open) => { setShowDeleteModal(open); if (!open) setDeleteError("") }}>
         <DialogContent className="sm:max-w-md rounded-xl p-5 border-zinc-100 bg-white">
           <DialogHeader>
             <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-red-50 mb-2">
@@ -693,7 +692,7 @@ export default function InternDetailPage() {
               Apakah Anda yakin ingin menghapus akun pendaftaran milik <span className="font-semibold text-zinc-800">{intern?.name}</span>? Data registrasi yang belum aktif ini akan dihapus permanen dari sistem database.
             </DialogDescription>
           </DialogHeader>
-          
+
           {deleteError && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2.5 text-xs text-red-800">
               <AlertCircle className="h-3.5 w-3.5 text-red-600 shrink-0 mt-0.5" />
@@ -701,14 +700,14 @@ export default function InternDetailPage() {
             </div>
           )}
 
-          <DialogFooter className="flex sm:justify-center gap-2 pt-2 w-full">
+          <DialogFooter className="flex sm:justify-end gap-2 pt-2">
             <Button
               type="button"
               variant="outline"
               size="sm"
               disabled={deleteLoading}
               onClick={() => setShowDeleteModal(false)}
-              className="h-8 text-xs flex-1 border-zinc-200 hover:bg-zinc-50 text-zinc-700"
+              className="h-8 text-xs border-zinc-200 hover:bg-zinc-50 text-zinc-700"
             >
               Batal
             </Button>
@@ -718,7 +717,7 @@ export default function InternDetailPage() {
               size="sm"
               disabled={deleteLoading}
               onClick={handleDelete}
-              className="h-8 text-xs flex-1 bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-1.5"
+              className="h-8 text-xs bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5"
             >
               {deleteLoading && <Loader2 className="h-3 w-3 animate-spin" />}
               Ya, Hapus Permanen
@@ -728,7 +727,7 @@ export default function InternDetailPage() {
       </Dialog>
 
       {/* 3. MODAL RESET PASSWORD */}
-      <Dialog open={showResetModal} onOpenChange={(open) => { setShowResetModal(open); if(!open) setResetPassword("") }}>
+      <Dialog open={showResetModal} onOpenChange={(open) => { setShowResetModal(open); if (!open) setResetPassword("") }}>
         <DialogContent className="sm:max-w-sm rounded-xl p-5 border-zinc-100 bg-white">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-zinc-900">Reset Password Intern</DialogTitle>

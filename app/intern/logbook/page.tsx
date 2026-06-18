@@ -63,7 +63,7 @@ export default function LogbookInternPage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
 
   const [form, setForm] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toLocaleDateString("en-CA"),
     description: "",
   })
   const [photo, setPhoto] = useState<File | null>(null)
@@ -263,7 +263,7 @@ export default function LogbookInternPage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error); return }
 
-      setForm({ date: new Date().toISOString().split("T")[0], description: "" })
+      setForm({ date: new Date().toLocaleDateString("en-CA"), description: "" })
       removePhoto()
       setMessage("Logbook berhasil disimpan!")
       setTab("riwayat")
