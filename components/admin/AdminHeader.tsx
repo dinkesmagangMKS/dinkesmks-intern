@@ -1,9 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
 export function AdminHeader() {
@@ -18,19 +15,24 @@ export function AdminHeader() {
 
   useEffect(() => {
     fetch("/api/profile")
-      .then(res => res.json())
-      .then(data => setUser(data))
-      .catch(() => {})
+      .then((res) => res.json())
+      .then((data) => setUser(data))
+      .catch(() => {});
   }, []);
 
   const initials = user?.name
-    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? user.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "A";
 
   const roleLabel: Record<string, string> = {
     SUPER_ADMIN: "Super Admin",
     ADMIN: "Admin",
-  }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full h-16 border-b border-[#5a8a2d]/20 bg-white flex items-center justify-between px-4 shrink-0 shadow-sm">
@@ -46,32 +48,18 @@ export function AdminHeader() {
       </div>
 
       {/* KANAN */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-8 w-8 rounded-full text-slate-500 hover:bg-[#8db83a]/10 hover:text-[#2d5a1b]"
-          onClick={() => toast.info("Tidak ada pengajuan logbook tertunda.")}
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
-        </Button>
-
-        <div className="h-5 w-px bg-[#5a8a2d]/20" />
-
-        <div className="flex items-center gap-2.5">
-          <div className="hidden md:flex flex-col text-right">
-            <span className="text-xs font-semibold text-slate-800">
-              {user?.name ?? "Memuat..."}
-            </span>
-            <span className="text-[10px] font-medium text-[#5a8a2d] uppercase">
-              {roleLabel[user?.role] ?? ""}
-              {user?.division?.name ? ` · ${user.division.name}` : ""}
-            </span>
-          </div>
-          <div className="h-8 w-8 rounded-full bg-[#2d5a1b] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-            {initials}
-          </div>
+      <div className="flex items-center gap-2.5">
+        <div className="hidden md:flex flex-col text-right">
+          <span className="text-xs font-semibold text-slate-800">
+            {user?.name ?? "Memuat..."}
+          </span>
+          <span className="text-[10px] font-medium text-[#5a8a2d] uppercase">
+            {roleLabel[user?.role] ?? ""}
+            {user?.division?.name ? ` · ${user.division.name}` : ""}
+          </span>
+        </div>
+        <div className="h-8 w-8 rounded-full bg-[#2d5a1b] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+          {initials}
         </div>
       </div>
     </header>

@@ -38,36 +38,47 @@ export async function GET() {
         logoBase64 = `data:image/png;base64,${logoBuffer.toString("base64")}`
       }
     } catch (logoError) {
-      // Jika pembacaan gambar gagal, log dikirim ke server backend agar endpoint tidak crash
       console.error("[export-logbook] Gagal memuat logo:", logoError)
     }
     // ============================================
 
-    const pdfBytes = await generateLogbookPDF({
-      intern: {
-        name: intern.name,
-        email: intern.email,
-        profile: intern.profile ? {
-          university: intern.profile.university,
-          major: intern.profile.major,
-          jobdesk: intern.profile.jobdesk,
-          start_date: intern.profile.start_date?.toISOString() ?? null,
-          end_date: intern.profile.end_date?.toISOString() ?? null
-        } : null,
-        division: intern.division
-      },
-      logbooks: logbooks.map(lb => ({
-        id: lb.id,
-        date: lb.date.toISOString(),
-        description: lb.description,
-        documentation: lb.documentation
-      })),
-      logoBase64: logoBase64 
-    })
+    // Pembungkus aman proses perakitan data ke dokumen PDF biner
+    let pdfBytes: ArrayBuffer
+    try {
+      pdfBytes = await generateLogbookPDF({
+        intern: {
+          name: intern.name,
+          email: intern.email,
+          profile: intern.profile ? {
+            university: intern.profile.university,
+            major: intern.profile.major,
+            jobdesk: intern.profile.jobdesk,
+            start_date: intern.profile.start_date?.toISOString() ?? null,
+            end_date: intern.profile.end_date?.toISOString() ?? null
+          } : null,
+          division: intern.division
+        },
+        logbooks: logbooks.map(lb => ({
+          id: lb.id,
+          date: lb.date.toISOString(),
+          description: lb.description,
+          documentation: lb.documentation ?? null 
+        })),
+        logoBase64: logoBase64 
+      })
+    } catch (pdfError) {
+      console.error("[export-logbook] Gagal melakukan render PDF internal:", pdfError)
+      return NextResponse.json(
+        { error: "Gagal merender template PDF logbook." },
+        { status: 500 }
+      )
+    }
 
     const safeName = intern.name.replace(/\s+/g, "-").toLowerCase()
 
-    return new Response(pdfBytes, {
+    // Menggunakan NextResponse untuk menjaga integritas stream biner data ArrayBuffer
+    return new NextResponse(pdfBytes, {
+      status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="logbook-${safeName}.pdf"`,
@@ -76,9 +87,9 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error("[export-logbook]", error)
+    console.error("[export-logbook] Fatal Server API Error:", error)
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat mengekspor logbook." },
+      { error: "Terjadi kesalahan server saat memproses ekspor logbook." },
       { status: 500 }
     )
   }

@@ -1,11 +1,11 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { InternSidebar } from "@/components/intern/InternSidebar";
 import { InternHeader } from "@/components/intern/InternHeader";
-import { InternBottomNav } from "@/components/intern/InternBottomNav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -14,21 +14,25 @@ export default function InternLayout({ children }: { children: React.ReactNode }
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    const userRole = localStorage.getItem("user_role") || "INTERN";
+    // Mengambil role pengguna dari localStorage
+    const userRole = localStorage.getItem("user_role");
 
-    if (userRole !== "INTERN") {
-      router.push("/login");
+    // Jika role tidak ditemukan atau bukan INTERN, arahkan kembali ke halaman login
+    if (!userRole || userRole !== "INTERN") {
+      router.replace("/login"); // Menggunakan replace agar rute tidak masuk ke history tombol 'back'
     } else {
       setIsAuthorized(true);
     }
   }, [router]);
 
+  // Tampilan loading skeleton saat melakukan verifikasi otorisasi di sisi klien
   if (!isAuthorized) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 p-8">
         <div className="space-y-4 w-full max-w-sm">
-          <Skeleton className="h-8 w-50 bg-slate-200" />
-          <Skeleton className="h-4 w-62.5 bg-slate-200" />
+          {/* Menggunakan arbitrary values standar Tailwind [px] agar komponen merender sempurna */}
+          <Skeleton className="h-8 w-[200px] bg-slate-200" />
+          <Skeleton className="h-4 w-[250px] bg-slate-200" />
         </div>
       </div>
     );
@@ -37,18 +41,22 @@ export default function InternLayout({ children }: { children: React.ReactNode }
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full bg-slate-50">
+        {/* Sidebar Navigasi Utama Intern */}
         <InternSidebar />
 
+        {/* Area Konten Kanan */}
         <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+          {/* Topbar / Header Intern */}
           <InternHeader />
 
+          {/* Konten Halaman yang Dapat Di-scroll */}
           <main className="flex-1 p-6 overflow-y-auto pb-16 md:pb-6">
             {children}
           </main>
         </div>
-
-        <InternBottomNav />
       </div>
+      
+      {/* Komponen Toaster Global untuk alert / feedback */}
       <Toaster position="top-center" richColors />
     </SidebarProvider>
   );
