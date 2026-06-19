@@ -14,23 +14,18 @@ export default function InternLayout({ children }: { children: React.ReactNode }
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Mengambil role pengguna dari localStorage
     const userRole = localStorage.getItem("user_role");
-
-    // Jika role tidak ditemukan atau bukan INTERN, arahkan kembali ke halaman login
     if (!userRole || userRole !== "INTERN") {
-      router.replace("/login"); // Menggunakan replace agar rute tidak masuk ke history tombol 'back'
+      router.replace("/login");
     } else {
       setIsAuthorized(true);
     }
   }, [router]);
 
-  // Tampilan loading skeleton saat melakukan verifikasi otorisasi di sisi klien
   if (!isAuthorized) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-slate-50 p-8">
         <div className="space-y-4 w-full max-w-sm">
-          {/* Menggunakan arbitrary values standar Tailwind [px] agar komponen merender sempurna */}
           <Skeleton className="h-8 w-[200px] bg-slate-200" />
           <Skeleton className="h-4 w-[250px] bg-slate-200" />
         </div>
@@ -39,18 +34,21 @@ export default function InternLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-full bg-slate-50">
+    <SidebarProvider className="w-full min-h-screen">
+      <div className="flex min-h-screen w-full bg-slate-50">
         {/* Sidebar Navigasi Utama Intern */}
         <InternSidebar />
 
         {/* Area Konten Kanan */}
-        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-          {/* Topbar / Header Intern */}
+        <div className="flex flex-1 flex-col min-w-0 w-full">
+          
+          {/* PERBAIKAN: Langsung panggil <InternHeader /> tanpa dibungkus div 'h-14'. 
+            <InternHeader /> sudah mengantongi class w-full, h-16, bg-[#2d5a1b], dan border-b sendiri.
+          */}
           <InternHeader />
 
           {/* Konten Halaman yang Dapat Di-scroll */}
-          <main className="flex-1 p-6 overflow-y-auto pb-16 md:pb-6">
+          <main className="flex-1 w-full min-w-0 px-1 py-4 sm:p-6 overflow-x-hidden overflow-y-auto pb-16 md:pb-6">
             {children}
           </main>
         </div>
