@@ -125,6 +125,10 @@ export default function AdminAttendancePage() {
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [error, setError] = useState("")
 
+  // Evaluasi jam operasional dinamis (Batas Jam 16:00 WITA)
+  const checkOperationalHours = () => new Date().getHours() >= 16
+  const isPastOperationalHours = checkOperationalHours()
+
   const fetchSessions = async () => {
     try {
       setLoading(true)
@@ -143,6 +147,12 @@ export default function AdminAttendancePage() {
   useEffect(() => { fetchSessions() }, [])
 
   const handleCreate = async () => {
+    // Validasi waktu operasional secara real-time saat tombol ditekan
+    if (checkOperationalHours()) {
+      setError("Waktu operasional pembuatan sesi telah berakhir.")
+      return
+    }
+
     setCreateLoading(true)
     setError("")
     try {
@@ -371,12 +381,20 @@ export default function AdminAttendancePage() {
             </DialogDescription>
           </DialogHeader>
 
-          {error && (
+          {/* Alert Proteksi Jam Operasional */}
+          {isPastOperationalHours ? (
+            <Alert variant="destructive" className="border-red-100 bg-red-50 py-2.5 px-3 shadow-none flex items-start gap-2">
+              <Clock className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+              <AlertDescription className="text-xs text-red-700 font-medium leading-normal">
+                Sesi gagal dibuat. Batas waktu pembuatan operasional harian maksimum adalah pukul **16.00 WITA**.
+              </AlertDescription>
+            </Alert>
+          ) : error ? (
             <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3 shadow-none">
               <AlertCircle className="h-3.5 w-3.5" />
               <AlertDescription className="text-xs">{error}</AlertDescription>
             </Alert>
-          )}
+          ) : null}
 
           <div className="flex gap-2 mt-1">
             <Button
@@ -392,7 +410,7 @@ export default function AdminAttendancePage() {
               size="sm"
               className="flex-1 h-8 text-xs bg-[#2d5a1b] hover:bg-[#204013] text-white shadow-none rounded-lg cursor-pointer font-medium"
               onClick={handleCreate}
-              disabled={createLoading}
+              disabled={createLoading || isPastOperationalHours}
             >
               {createLoading ? "Membuat..." : "Buat Sesi"}
             </Button>
