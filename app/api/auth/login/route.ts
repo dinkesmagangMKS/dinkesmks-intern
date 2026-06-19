@@ -42,7 +42,8 @@ export async function POST(request: Request) {
     const token = signToken({
       userId: user.id,
       role: user.role,
-      isFirstLogin: user.is_first_login
+      isFirstLogin: user.is_first_login,
+      divisionId: user.division_id
     })
 
     //Simpan ke HTTP-only cookie

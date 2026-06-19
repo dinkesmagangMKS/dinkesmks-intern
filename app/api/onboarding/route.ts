@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser, signToken, setAuthCookie } from "@/lib/auth"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { validatePassword } from "@/utils/password"
 
 export async function POST(request:Request) {
   try {
@@ -46,6 +47,14 @@ export async function POST(request:Request) {
       )
     }
 
+    const { valid, errors } = validatePassword(password)
+    if (!valid) {
+      return NextResponse.json(
+        { error: errors.join(", ") },
+        { status: 400 }
+      )
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.$transaction([
@@ -74,7 +83,8 @@ export async function POST(request:Request) {
     const newToken = signToken({
       userId: user.userId,
       role: user.role,
-      isFirstLogin: false
+      isFirstLogin: false,
+      divisionId: user.divisionId
     })
     await setAuthCookie(newToken)
 
