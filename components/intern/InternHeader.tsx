@@ -2,12 +2,14 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function InternHeader() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetch("/api/profile")
+    // Ditambahkan cache: "no-store" agar data selalu fresh setelah update profile via PATCH
+    fetch("/api/profile", { cache: "no-store" })
       .then(res => res.json())
       .then(data => setUser(data))
       .catch(() => {})
@@ -49,9 +51,18 @@ export function InternHeader() {
               {user?.profile?.major ?? ""}
             </span>
           </div>
-          <div className="h-8 w-8 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-            {initials}
-          </div>
+
+          {/* FOTO PROFIL INTERN */}
+          <Avatar className="h-8 w-8 border border-white/20 shadow-sm">
+            <AvatarImage 
+              src={user?.profile?.photo_url ?? user?.image} 
+              alt={user?.name ?? "Intern Profile"} 
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-white/20 text-white font-bold text-sm">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>
