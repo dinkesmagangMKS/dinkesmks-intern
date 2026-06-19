@@ -21,6 +21,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Building2,
+  Check,
+  X,
 } from "lucide-react"
 import imageCompression from "browser-image-compression"
 import { sanitizeFileName, uploadFile } from "@/lib/supabase"
@@ -135,18 +137,16 @@ export default function InternProfilePage() {
   const [editMessage, setEditMessage] = useState("")
   const [photoUploading, setPhotoUploading] = useState(false)
 
-  const passwordLength = form.new_password.length
-  const hasLetter = /[a-zA-Z]/.test(form.new_password)
-  const hasNumber = /[0-9]/.test(form.new_password)
-
-  const getStrengthMessage = () => {
-    if (!form.new_password) return ""
-    if (passwordLength < 8) return "Password terlalu pendek (minimal 8 karakter)"
-    if (!hasLetter || !hasNumber) return "Kekuatan: Sedang (tambahkan kombinasi huruf dan angka)"
-    return "Kekuatan: Kuat"
+  // Validasi objek kriteria dinamis (Sinkronisasi Onboard)
+  const pwd = form.new_password
+  const criteria = {
+    minLength: pwd.length >= 8,
+    hasUppercase: /[A-Z]/.test(pwd),
+    hasLowercase: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
   }
 
-  const strengthMessage = getStrengthMessage()
+  const isPasswordValid = criteria.minLength && criteria.hasUppercase && criteria.hasLowercase && criteria.hasNumber
 
   // Sinkronisasi form edit saat data user berhasil dimuat
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function InternProfilePage() {
     return () => clearTimeout(t)
   }, [passwordMessage])
 
-  // Tambahan: Auto-clear profil edit success message
+  // Auto-clear profil edit success message
   useEffect(() => {
     if (!editMessage) return
     const t = setTimeout(() => setEditMessage(""), 4000)
@@ -195,12 +195,13 @@ export default function InternProfilePage() {
     e.preventDefault()
     setPasswordError("")
 
-    if (form.new_password !== form.confirm_password) {
-      setPasswordError("Password baru dan konfirmasi tidak sama.")
+    if (!isPasswordValid) {
+      setPasswordError("Password baru belum memenuhi kriteria standar keamanan.")
       return
     }
-    if (form.new_password.length < 8) {
-      setPasswordError("Password minimal 8 karakter.")
+
+    if (form.new_password !== form.confirm_password) {
+      setPasswordError("Password baru dan konfirmasi password tidak sama.")
       return
     }
 
@@ -256,8 +257,6 @@ export default function InternProfilePage() {
       setIsEditing(false)
       setEditMessage("Profil berhasil diperbarui!")
       
-      // Mengoptimalkan pemanggilan state langsung dari response body PATCH (jika API mengembalikannya)
-      // Jika API tidak mengembalikan user data lengkap, gunakan metode fetch ulang Anda sebelumnya.
       if (data.user) {
         setUser(data.user)
       } else {
@@ -315,9 +314,11 @@ export default function InternProfilePage() {
     </Label>
   )
 
+  const passwordInputClasses = "h-8 text-sm border-zinc-200 focus-visible:ring-1 focus-visible:ring-[#2d5a1b] focus-visible:border-[#2d5a1b] focus:bg-[#f4f9f1] autofill:shadow-[inset_0_0_0_1000px_#f4f9f1] transition-all"
+
   return (
     <main className="min-h-screen bg-white p-5">
-      <div className="mx-auto space-y-4 max-w-4xl"> {/* Ditambahkan max-w agar layout tidak terlalu lebar di desktop */}
+      <div className="mx-auto space-y-4 max-w-4xl">
 
         {/* HEADER */}
         <div className="flex items-center gap-2.5">
@@ -507,7 +508,7 @@ export default function InternProfilePage() {
                     placeholder="Masukkan password lama"
                     value={form.old_password}
                     onChange={e => setForm({ ...form, old_password: e.target.value })}
-                    className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 focus-visible:border-[#2d5a1b]"
+                    className={passwordInputClasses}
                     required
                   />
                 </div>
@@ -516,16 +517,44 @@ export default function InternProfilePage() {
                   <RequiredLabel>Password Baru</RequiredLabel>
                   <Input
                     type="password"
-                    placeholder="Minimal 8 karakter"
+                    placeholder="Masukkan password baru Anda"
                     value={form.new_password}
                     onChange={e => setForm({ ...form, new_password: e.target.value })}
-                    className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 focus-visible:border-[#2d5a1b]"
+                    className={passwordInputClasses}
                     required
                   />
-                  {strengthMessage && (
-                    <p className={`text-[11px] font-medium mt-1 ${strengthMessage.includes("Kuat") ? "text-emerald-600" : strengthMessage.includes("Sedang") ? "text-amber-600" : "text-red-500"}`}>
-                      {strengthMessage}
-                    </p>
+                  
+                  {/* BLOK KRITERIA PASSWORD INTERAKTIF (ONBOARD SYNC) */}
+                  {form.new_password && (
+                    <div className="mt-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 space-y-1.5 text-left">
+                      <div className="flex items-center justify-between border-b border-zinc-200/60 pb-1.5 mb-1">
+                        <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                          Kriteria Password
+                        </span>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${isPasswordValid ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                          {isPasswordValid ? "Memenuhi Syarat" : "Belum Sesuai"}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-medium text-zinc-500">
+                        <div className="flex items-center gap-1.5">
+                          {criteria.minLength ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.minLength ? "text-emerald-600" : ""}>Minimal 8 karakter</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {criteria.hasUppercase ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.hasUppercase ? "text-emerald-600" : ""}>Harus ada huruf besar (A-Z)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {criteria.hasLowercase ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.hasLowercase ? "text-emerald-600" : ""}>Harus ada huruf kecil (a-z)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {criteria.hasNumber ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.hasNumber ? "text-emerald-600" : ""}>Harus mengandung angka (0-9)</span>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -533,15 +562,15 @@ export default function InternProfilePage() {
                   <RequiredLabel>Konfirmasi Password Baru</RequiredLabel>
                   <Input
                     type="password"
-                    placeholder="Ulangi password baru"
+                    placeholder="Sama dengan kolom di atas"
                     value={form.confirm_password}
                     onChange={e => setForm({ ...form, confirm_password: e.target.value })}
-                    className="h-8 text-sm border-zinc-200 focus-visible:ring-[#2d5a1b] focus-visible:ring-1 focus-visible:border-[#2d5a1b]"
+                    className={passwordInputClasses}
                     required
                   />
                   {form.confirm_password && (
-                    <p className={`text-[11px] font-medium mt-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
-                      {form.new_password === form.confirm_password ? "✓ Password cocok" : "Password tidak sama"}
+                    <p className={`text-[11px] font-medium mt-1 flex items-center gap-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
+                      {form.new_password === form.confirm_password ? "✓ Password terverifikasi cocok" : "✕ Password tidak sesuai"}
                     </p>
                   )}
                 </div>
@@ -564,11 +593,8 @@ export default function InternProfilePage() {
               </form>
             </div>
 
-            {/* MODAL SHADCN DIALOG KONFIRMASI PASWORD */}
-            <Dialog
-              open={showPasswordModal}
-              onOpenChange={(open) => setShowPasswordModal(open)}
-            >
+            {/* MODAL SHADCN DIALOG KONFIRMASI PASSWORD */}
+            <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
               <DialogContent className="sm:max-w-xs rounded-xl p-5">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
