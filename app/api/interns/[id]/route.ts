@@ -1,12 +1,13 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getInternStatus } from "@/utils/intern"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  // Melakukan await params karena di Next.js 16 params bersifat asynchronous (Promise)
   const { id } = await params
 
   try {
@@ -109,7 +110,7 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
@@ -156,7 +157,7 @@ export async function DELETE(
       })
     }
 
-    // hapus user
+    // Hapus user
     await prisma.user.delete({
       where: { id }
     })
