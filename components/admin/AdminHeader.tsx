@@ -2,6 +2,7 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AdminHeader() {
   const [user, setUser] = useState<any>(null);
@@ -14,7 +15,8 @@ export function AdminHeader() {
   });
 
   useEffect(() => {
-    fetch("/api/profile")
+    // Ditambahkan cache: "no-store" agar data selalu fresh setelah update profile
+    fetch("/api/profile", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => setUser(data))
       .catch(() => {});
@@ -48,7 +50,7 @@ export function AdminHeader() {
       </div>
 
       {/* KANAN */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         <div className="hidden md:flex flex-col text-right">
           <span className="text-xs font-semibold text-slate-800">
             {user?.name ?? "Memuat..."}
@@ -58,9 +60,18 @@ export function AdminHeader() {
             {user?.division?.name ? ` · ${user.division.name}` : ""}
           </span>
         </div>
-        <div className="h-8 w-8 rounded-full bg-[#2d5a1b] text-white flex items-center justify-center font-bold text-sm shadow-sm">
-          {initials}
-        </div>
+
+        {/* FOTO PROFIL ADMIN */}
+        <Avatar className="h-9 w-9 border border-[#5a8a2d]/20 shadow-sm">
+          <AvatarImage 
+            src={user?.photo_url ?? user?.profile?.photo_url ?? user?.image} 
+            alt={user?.name ?? "User Profile"} 
+            className="object-cover"
+          />
+          <AvatarFallback className="bg-[#2d5a1b] text-white font-bold text-sm">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
       </div>
     </header>
   );
