@@ -1,6 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { deleteFile } from "@/lib/supabase";
+import { deleteFile, extractStoragePath } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function PATCH(
@@ -48,10 +48,11 @@ export async function PATCH(
     // Ambil semua path foto dari logbook
     const photoPaths = logbooks
       .filter((logbook) => logbook.documentation !== null)
-      .map((logbook) => logbook.documentation as string);
+      .map((logbook) => extractStoragePath(logbook.documentation as string))
+      .filter((path): path is string => path !== null);
 
     // Hapus semua
-    await Promise.all(photoPaths.map((path) => deleteFile(path)));
+    await Promise.all(photoPaths.map((path) => deleteFile(path).catch(() => { })));
 
     await prisma.logbook.updateMany({
       where: { user_id: id },

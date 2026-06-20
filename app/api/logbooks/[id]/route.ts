@@ -1,19 +1,19 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { deleteFile } from "@/lib/supabase"
+import { deleteFile, extractStoragePath } from "@/lib/supabase"
 import type { UpdateLogbookInput } from "@/types"
 import { NextResponse } from "next/server"
 
 export async function PATCH(
-  request:Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
     const { description, documentation }: UpdateLogbookInput = await request.json()
     const user = await getSessionUser()
-        
-    if (!user || (user.role !== "INTERN")) {
+
+    if (!user || user.role !== "INTERN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -35,6 +35,14 @@ export async function PATCH(
       )
     }
 
+    // Kalau ada foto baru DAN foto lama berbeda — hapus foto lama
+    if (documentation && logbook.documentation && logbook.documentation !== documentation) {
+      const oldPath = extractStoragePath(logbook.documentation)
+      if (oldPath) {
+        await deleteFile(oldPath).catch(() => { })
+      }
+    }
+
     const updated = await prisma.logbook.update({
       where: { id },
       data: {
@@ -54,17 +62,17 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request:Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
     const user = await getSessionUser()
-  
+
     if (!user || (user.role !== "INTERN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    
+
     const logbook = await prisma.logbook.findUnique({
       where: { id }
     })
@@ -84,7 +92,10 @@ export async function DELETE(
     }
 
     if (logbook.documentation) {
-      await deleteFile(logbook.documentation)
+      const oldPath = extractStoragePath(logbook.documentation)
+      if (oldPath) {
+        await deleteFile(oldPath).catch(() => { })
+      }
     }
 
     await prisma.logbook.delete({
