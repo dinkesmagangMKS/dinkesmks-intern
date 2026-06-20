@@ -8,7 +8,7 @@ import { sanitizeFileName, uploadFile } from "@/lib/supabase"
 import { validatePassword } from "@/utils/password"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Loader2, AlertCircle, CheckCircle2, Check, X } from "lucide-react"
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -32,10 +32,16 @@ export default function OnboardingPage() {
     message: "",
   })
 
-  const passwordValidation = validatePassword(form.new_password)
-  const strengthMessage = form.new_password
-    ? (passwordValidation.valid ? "Kuat" : "Belum memenuhi semua kriteria keamanan")
-    : ""
+  // Validasi password dinamis untuk memetakan kriteria secara visual
+  const pwd = form.new_password
+  const criteria = {
+    minLength: pwd.length >= 8,
+    hasUppercase: /[A-Z]/.test(pwd),
+    hasLowercase: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
+  }
+
+  const isPasswordValid = criteria.minLength && criteria.hasUppercase && criteria.hasLowercase && criteria.hasNumber
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -62,7 +68,7 @@ export default function OnboardingPage() {
     setLoading(true)
     setStatus({ type: "", message: "" })
 
-    if (!passwordValidation.valid) {
+    if (!isPasswordValid) {
       setStatus({ type: "error", message: "Password baru belum memenuhi kriteria standar keamanan." })
       setLoading(false)
       return
@@ -87,7 +93,7 @@ export default function OnboardingPage() {
           university: form.university,
           major: form.major,
           jobdesk: form.jobdesk,
-          phone: form.phone || null, // Dikirim null jika kosong
+          phone: form.phone || null,
           start_date: form.start_date,
           end_date: form.end_date,
           old_password: form.old_password,
@@ -207,11 +213,39 @@ export default function OnboardingPage() {
               
               <div className="space-y-1">
                 <FieldLabel>Buat Password Baru</FieldLabel>
-                <input type="password" name="new_password" required placeholder="Gunakan minimal 8 karakter unik" value={form.new_password} onChange={handleChange} className={inputClasses} />
-                {strengthMessage && (
-                  <p className={`text-[11px] font-medium mt-1 ${strengthMessage.includes("Kuat") ? "text-emerald-600" : "text-red-500"}`}>
-                    {strengthMessage}
-                  </p>
+                <input type="password" name="new_password" required placeholder="Masukkan password baru Anda" value={form.new_password} onChange={handleChange} className={inputClasses} />
+                
+                {/* BLOK KRITERIA PASSWORD INTERAKTIF */}
+                {form.new_password && (
+                  <div className="mt-2.5 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 space-y-1.5">
+                    <div className="flex items-center justify-between border-b border-zinc-200/60 pb-1.5 mb-1">
+                      <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                        Kriteria Password
+                      </span>
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${isPasswordValid ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                        {isPasswordValid ? "Memenuhi Syarat" : "Belum Sesuai"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-medium text-zinc-500">
+                      <div className="flex items-center gap-1.5">
+                        {criteria.minLength ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                        <span className={criteria.minLength ? "text-emerald-600" : ""}>Minimal 8 karakter</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {criteria.hasUppercase ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                        <span className={criteria.hasUppercase ? "text-emerald-600" : ""}>Harus ada huruf besar (A-Z)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {criteria.hasLowercase ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                        <span className={criteria.hasLowercase ? "text-emerald-600" : ""}>Harus ada huruf kecil (a-z)</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {criteria.hasNumber ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                        <span className={criteria.hasNumber ? "text-emerald-600" : ""}>Harus mengandung angka (0-9)</span>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -219,8 +253,8 @@ export default function OnboardingPage() {
                 <FieldLabel>Konfirmasi Ulang Password Baru</FieldLabel>
                 <input type="password" name="confirm_password" required placeholder="Sama dengan kolom di atas" value={form.confirm_password} onChange={handleChange} className={inputClasses} />
                 {form.confirm_password && (
-                  <p className={`text-[11px] font-medium mt-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
-                    {form.new_password === form.confirm_password ? "✓ Password terverifikasi cocok" : "Password tidak sesuai"}
+                  <p className={`text-[11px] font-medium mt-1 flex items-center gap-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
+                    {form.new_password === form.confirm_password ? "✓ Password terverifikasi cocok" : "✕ Password tidak sesuai"}
                   </p>
                 )}
               </div>

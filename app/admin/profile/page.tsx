@@ -16,10 +16,11 @@ import {
   AlertCircle,
   CheckCircle2,
   Building2,
+  Check,
+  X,
 } from "lucide-react"
 import imageCompression from "browser-image-compression"
 import { sanitizeFileName, uploadFile } from "@/lib/supabase"
-import { validatePassword } from "@/utils/password"
 
 import {
   Dialog,
@@ -71,7 +72,6 @@ function ProfileSkeleton() {
 }
 
 export default function AdminProfilePage() {
-  // Menggunakan interface daripada 'any'
   const [user, setUser] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -86,10 +86,16 @@ export default function AdminProfilePage() {
   const [passwordMessage, setPasswordMessage] = useState("")
   const [photoUploading, setPhotoUploading] = useState(false)
 
-  const passwordValidation = validatePassword(form.new_password)
-  const strengthMessage = form.new_password
-    ? (passwordValidation.valid ? "Kuat" : "Belum memenuhi semua kriteria")
-    : ""
+  // Validasi password dinamis dari halaman onboard
+  const pwd = form.new_password
+  const criteria = {
+    minLength: pwd.length >= 8,
+    hasUppercase: /[A-Z]/.test(pwd),
+    hasLowercase: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
+  }
+
+  const isPasswordValid = criteria.minLength && criteria.hasUppercase && criteria.hasLowercase && criteria.hasNumber
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -100,7 +106,7 @@ export default function AdminProfilePage() {
       } catch (e) {
         console.error(e)
       } finally {
-        setLoading(false)
+        loading && setLoading(false)
       }
     }
     fetchProfile()
@@ -116,12 +122,13 @@ export default function AdminProfilePage() {
     e.preventDefault()
     setPasswordError("")
 
-    if (form.new_password !== form.confirm_password) {
-      setPasswordError("Password baru dan konfirmasi tidak sama.")
+    if (!isPasswordValid) {
+      setPasswordError("Password baru belum memenuhi kriteria standar keamanan.")
       return
     }
-    if (!passwordValidation.valid) {
-      setPasswordError("Password baru belum memenuhi semua kriteria keamanan.")
+
+    if (form.new_password !== form.confirm_password) {
+      setPasswordError("Password baru dan konfirmasi password tidak sama.")
       return
     }
 
@@ -203,7 +210,6 @@ export default function AdminProfilePage() {
     </Label>
   )
 
-  // Class utility yang sekarang dipasang di komponen Input
   const passwordInputClasses = "h-8 text-sm border-zinc-200 focus-visible:ring-1 focus-visible:ring-[#2d5a1b] focus-visible:border-[#2d5a1b] focus:bg-[#f4f9f1] autofill:shadow-[inset_0_0_0_1000px_#f4f9f1] transition-all"
 
   return (
@@ -304,16 +310,44 @@ export default function AdminProfilePage() {
                   <RequiredLabel>Password Baru</RequiredLabel>
                   <Input
                     type="password"
-                    placeholder="Minimal 8 karakter"
+                    placeholder="Masukkan password baru Anda"
                     value={form.new_password}
                     onChange={e => setForm({ ...form, new_password: e.target.value })}
                     className={passwordInputClasses}
                     required
                   />
-                  {strengthMessage && (
-                    <p className={`text-[11px] font-medium mt-1 ${strengthMessage.includes("Kuat") ? "text-emerald-600" : "text-red-500"}`}>
-                      {strengthMessage}
-                    </p>
+                  
+                  {/* BLOK KRITERIA PASSWORD INTERAKTIF (ONBOARD SYNC) */}
+                  {form.new_password && (
+                    <div className="mt-2 rounded-xl border border-zinc-100 bg-zinc-50/50 p-3 space-y-1.5 text-left">
+                      <div className="flex items-center justify-between border-b border-zinc-200/60 pb-1.5 mb-1">
+                        <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                          Kriteria Password
+                        </span>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded ${isPasswordValid ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                          {isPasswordValid ? "Memenuhi Syarat" : "Belum Sesuai"}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] font-medium text-zinc-500">
+                        <div className="flex items-center gap-1.5">
+                          {criteria.minLength ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.minLength ? "text-emerald-600" : ""}>Minimal 8 karakter</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {criteria.hasUppercase ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.hasUppercase ? "text-emerald-600" : ""}>Harus ada huruf besar (A-Z)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {criteria.hasLowercase ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.hasLowercase ? "text-emerald-600" : ""}>Harus ada huruf kecil (a-z)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {criteria.hasNumber ? <Check className="h-3 w-3 text-emerald-600 stroke-[3]" /> : <X className="h-3 w-3 text-zinc-300" />}
+                          <span className={criteria.hasNumber ? "text-emerald-600" : ""}>Harus mengandung angka (0-9)</span>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
@@ -321,15 +355,15 @@ export default function AdminProfilePage() {
                   <RequiredLabel>Konfirmasi Password Baru</RequiredLabel>
                   <Input
                     type="password"
-                    placeholder="Ulangi password baru"
+                    placeholder="Sama dengan kolom di atas"
                     value={form.confirm_password}
                     onChange={e => setForm({ ...form, confirm_password: e.target.value })}
                     className={passwordInputClasses}
                     required
                   />
                   {form.confirm_password && (
-                    <p className={`text-[11px] font-medium mt-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
-                      {form.new_password === form.confirm_password ? "✓ Password cocok" : "Password tidak sama"}
+                    <p className={`text-[11px] font-medium mt-1 flex items-center gap-1 ${form.new_password === form.confirm_password ? "text-emerald-600" : "text-red-500"}`}>
+                      {form.new_password === form.confirm_password ? "✓ Password terverifikasi cocok" : "✕ Password tidak sesuai"}
                     </p>
                   )}
                 </div>
