@@ -28,6 +28,8 @@ import {
   FileImage,
   ClockIcon,
   History,
+  Download,
+  Loader2,
 } from "lucide-react"
 
 // Types & Interfaces
@@ -129,6 +131,44 @@ export default function InternDashboardPage({ setTab }: InternDashboardProps) {
   const [clockOutLoading, setClockOutLoading] = useState(false)
   const [clockOutError, setClockOutError] = useState("")
 
+  const [exportLoading, setExportLoading] = useState(false)
+  const [exportError, setExportError] = useState("")
+
+  const handleExport = async () => {
+    setExportLoading(true)
+    setExportError("")
+    try {
+      const res = await fetch("/api/logbooks/export")
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error ?? "Gagal mengekspor logbook.")
+      }
+
+      const blob = await res.blob()
+
+      const disposition = res.headers.get("Content-Disposition")
+      let filename = "logbook.pdf"
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/)
+        if (match?.[1]) filename = match[1]
+      }
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunduh PDF.")
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   const fetchDashboard = async () => {
     try {
       setLoading(true)
@@ -213,6 +253,31 @@ export default function InternDashboardPage({ setTab }: InternDashboardProps) {
 
   const firstName = user?.name?.split(" ")[0] ?? "Kamu"
 
+  const getGracePeriod = () => {
+    if (!user?.profile?.end_date) return null
+
+    const today = new Date()
+    const endDate = new Date(user.profile.end_date)
+
+    // Normalize to local midnight for calendar days
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const endMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
+
+    const diffTime = todayMidnight.getTime() - endMidnight.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays > 0 && diffDays <= 14) {
+      return {
+        daysRemaining: 14 - diffDays,
+        showBanner: true
+      }
+    }
+
+    return null
+  }
+
+  const gracePeriod = getGracePeriod()
+
   return (
     <main className="min-h-screen bg-white p-5">
       <div className="mx-auto max-w-4xl space-y-4">
@@ -230,6 +295,52 @@ export default function InternDashboardPage({ setTab }: InternDashboardProps) {
                 })}
               </p>
             </div>
+
+            {/* GRACE PERIOD BANNER */}
+            {gracePeriod && (
+              <div className="rounded-lg border border-red-200 bg-red-50/50 p-4 space-y-3 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1 flex-1">
+                    <h4 className="text-xs font-bold text-red-800 tracking-wide">Pemberitahuan Penting</h4>
+                    <p className="text-xs text-red-700 leading-relaxed font-medium">
+                      Masa magang Anda telah berakhir. Logbook Anda akan dikunci (tidak dapat dimodifikasi/dihapus) dan dokumentasinya dihapus permanen{" "}
+                      {gracePeriod.daysRemaining === 0 ? (
+                        <span className="font-bold underline">hari ini</span>
+                      ) : (
+                        <>
+                          dalam <span className="font-bold underline">{gracePeriod.daysRemaining} hari</span> lagi
+                        </>
+                      )}
+                      . Silakan export dokumen Anda sekarang!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    onClick={handleExport}
+                    disabled={exportLoading}
+                    className="h-8 px-4 text-xs bg-red-600 hover:bg-red-700 text-white font-semibold gap-1.5 shrink-0 w-full sm:w-auto shadow-sm transition-all cursor-pointer"
+                  >
+                    {exportLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Download className="h-3.5 w-3.5" />
+                    )}
+                    {exportLoading ? "Mengekspor..." : "Export Dokumen Sekarang"}
+                  </Button>
+                </div>
+
+                {exportError && (
+                  <Alert variant="destructive" className="border-red-100 bg-red-50 py-2 px-3 mt-2">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    <AlertDescription className="text-xs">{exportError}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
 
             {/* SUCCESS MESSAGE */}
             {checkInMessage && (

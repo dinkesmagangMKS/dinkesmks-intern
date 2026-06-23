@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { deleteFile, extractStoragePath } from "@/lib/supabase";
 import { getInternStatus } from "@/utils/intern";
 import { NextResponse } from "next/server";
 
@@ -33,11 +34,43 @@ export async function PATCH(request: Request) {
   try {
     const sessionUser = await getSessionUser()
 
-    if (!sessionUser || sessionUser.role !== "INTERN") {
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { university, major, jobdesk, phone, photo_url, start_date, end_date } = await request.json()
+    const body = await request.json()
+    const { photo_url } = body
+
+    // Kalau ada foto baru, hapus foto lama dari storage
+    if (photo_url) {
+      const existingProfile = await prisma.internProfile.findUnique({
+        where: { user_id: sessionUser.userId }
+      })
+
+      if (existingProfile?.photo_url && existingProfile.photo_url !== photo_url) {
+        const oldPath = extractStoragePath(existingProfile.photo_url)
+        if (oldPath) {
+          await deleteFile(oldPath).catch(() => { })
+        }
+      }
+    }
+
+    // Admin hanya bisa update foto
+    if (sessionUser.role === "ADMIN" || sessionUser.role === "SUPER_ADMIN") {
+      const updated = await prisma.internProfile.upsert({
+        where: { user_id: sessionUser.userId },
+        update: { photo_url },
+        create: { user_id: sessionUser.userId, photo_url }
+      })
+      return NextResponse.json(updated)
+    }
+
+    // Intern bisa update semua field profil
+    if (sessionUser.role !== "INTERN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { university, major, jobdesk, phone, start_date, end_date } = body
 
     // Cek status intern
     const profile = await prisma.internProfile.findUnique({
