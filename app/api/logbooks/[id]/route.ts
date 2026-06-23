@@ -1,20 +1,33 @@
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { deleteFile } from "@/lib/supabase"
+import { deleteFile, extractStoragePath } from "@/lib/supabase"
 import type { UpdateLogbookInput } from "@/types"
+import { isLogbookLocked } from "@/utils/intern"
 import { NextResponse } from "next/server"
 
 export async function PATCH(
-  request:Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
     const { description, documentation }: UpdateLogbookInput = await request.json()
     const user = await getSessionUser()
-        
-    if (!user || (user.role !== "INTERN")) {
+
+    if (!user || user.role !== "INTERN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const profile = await prisma.internProfile.findUnique({
+      where: { user_id: user.userId }
+    })
+
+    const locked = isLogbookLocked(profile)
+    if (locked) {
+      return NextResponse.json(
+        { error: "Masa tenggang magang Anda telah berakhir lebih dari 14 hari. Logbook Anda terkunci." },
+        { status: 400 }
+      )
     }
 
     const logbook = await prisma.logbook.findUnique({
@@ -33,6 +46,14 @@ export async function PATCH(
         { error: "Kamu tidak bisa edit logbook orang lain." },
         { status: 403 }
       )
+    }
+
+    // Kalau ada foto baru DAN foto lama berbeda — hapus foto lama
+    if (documentation && logbook.documentation && logbook.documentation !== documentation) {
+      const oldPath = extractStoragePath(logbook.documentation)
+      if (oldPath) {
+        await deleteFile(oldPath).catch(() => { })
+      }
     }
 
     const updated = await prisma.logbook.update({
@@ -54,17 +75,29 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request:Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
     const user = await getSessionUser()
-  
+
     if (!user || (user.role !== "INTERN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    
+
+    const profile = await prisma.internProfile.findUnique({
+      where: { user_id: user.userId }
+    })
+
+    const locked = isLogbookLocked(profile)
+    if (locked) {
+      return NextResponse.json(
+        { error: "Masa tenggang magang Anda telah berakhir lebih dari 14 hari. Logbook Anda terkunci." },
+        { status: 400 }
+      )
+    }
+
     const logbook = await prisma.logbook.findUnique({
       where: { id }
     })
@@ -84,7 +117,10 @@ export async function DELETE(
     }
 
     if (logbook.documentation) {
-      await deleteFile(logbook.documentation)
+      const oldPath = extractStoragePath(logbook.documentation)
+      if (oldPath) {
+        await deleteFile(oldPath).catch(() => { })
+      }
     }
 
     await prisma.logbook.delete({

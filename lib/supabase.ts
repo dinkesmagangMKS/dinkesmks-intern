@@ -55,6 +55,21 @@ export async function uploadFile(
   return publicUrlData.publicUrl
 }
 
+// Extract storage path dari public URL Supabase
+// e.g. "https://xxx.supabase.co/storage/v1/object/public/intern-files/logbooks/123.jpg"
+//   -> "logbooks/123.jpg"
+export function extractStoragePath(publicUrl: string): string | null {
+  try {
+    const marker = "/storage/v1/object/public/intern-files/"
+    const idx = publicUrl.indexOf(marker)
+    if (idx === -1) return null
+    const path = publicUrl.substring(idx + marker.length)
+    return path || null
+  } catch {
+    return null
+  }
+}
+
 // Hapus file
 export async function deleteFile(path: string): Promise<void> {
   await supabase.storage.from("intern-files").remove([path])
