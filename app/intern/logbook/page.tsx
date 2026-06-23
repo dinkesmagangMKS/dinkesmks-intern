@@ -27,6 +27,7 @@ import {
   Trash2,
   Download,
   Loader2,
+  AlertCircle,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -84,6 +85,7 @@ export default function LogbookInternPage() {
   // System Notification States
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
+  const [profile, setProfile] = useState<any>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editFileInputRef = useRef<HTMLInputElement>(null)
@@ -114,9 +116,36 @@ export default function LogbookInternPage() {
     }
   }
 
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/profile")
+      const result = await res.json()
+      setProfile(result)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useEffect(() => { 
     fetchLogbooks() 
+    fetchProfile()
   }, [])
+
+  const getLogbookLocked = () => {
+    if (!profile?.profile?.end_date) return false
+    const today = new Date()
+    const endDate = new Date(profile.profile.end_date)
+
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const endMidnight = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate())
+
+    const diffTime = todayMidnight.getTime() - endMidnight.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    return diffDays > 14
+  }
+
+  const logbookLocked = getLogbookLocked()
 
   // Auto clear notification after 4 seconds
   useEffect(() => {
@@ -281,6 +310,13 @@ export default function LogbookInternPage() {
     setError("")
     setMessage("")
 
+    if (logbookLocked) {
+      setError("Masa tenggang magang Anda telah berakhir lebih dari 14 hari. Logbook Anda terkunci.")
+      setShowEditModal(false)
+      setEditLoading(false)
+      return
+    }
+
     try {
       let photoUrl = editForm.documentation
 
@@ -304,7 +340,11 @@ export default function LogbookInternPage() {
       })
 
       const data = await res.json()
-      if (!res.ok) { setError(data.error); return }
+      if (!res.ok) { 
+        setError(data.error)
+        setShowEditModal(false)
+        return 
+      }
 
       setLogbooks(prev => 
         prev.map(lb => lb.id === selectedLogbook.id ? { ...lb, description: editForm.description, documentation: photoUrl } : lb)
@@ -314,6 +354,7 @@ export default function LogbookInternPage() {
       setShowEditModal(false)
     } catch {
       setError("Terjadi kesalahan sistem.")
+      setShowEditModal(false)
     } finally {
       setEditLoading(false)
     }
@@ -323,6 +364,14 @@ export default function LogbookInternPage() {
     setDeleteLoading(true)
     setError("")
     setMessage("")
+
+    if (logbookLocked) {
+      setError("Masa tenggang magang Anda telah berakhir lebih dari 14 hari. Logbook Anda terkunci.")
+      setShowDeleteModal(false)
+      setDeleteLoading(false)
+      return
+    }
+
     try {
       const res = await fetch(`/api/logbooks/${selectedLogbook.id}`, {
         method: "DELETE"
@@ -330,6 +379,7 @@ export default function LogbookInternPage() {
       const data = await res.json()
       if (!res.ok) {
         setError(data.error)
+        setShowDeleteModal(false)
         return
       }
       
@@ -339,6 +389,7 @@ export default function LogbookInternPage() {
       setSelectedLogbook(null)
     } catch {
       setError("Terjadi kesalahan sistem.")
+      setShowDeleteModal(false)
     } finally {
       setDeleteLoading(false)
     }
@@ -540,40 +591,45 @@ export default function LogbookInternPage() {
                       </p>
                     </div>
 
-                    {/* Tombol edit */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setError("")
-                        setMessage("")
-                        setSelectedLogbook(lb)
-                        setEditForm({ description: lb.description, documentation: lb.documentation ?? "" })
-                        setEditPhotoPreview(lb.documentation ?? null)
-                        setEditPhoto(null)
-                        setShowEditModal(true)
-                      }}
-                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-[#2d5a1b] shrink-0 gap-1 cursor-pointer"
-                    >
-                      <Pencil className="h-2.5 w-2.5" />
-                      Edit
-                    </Button>
+                    {/* Tombol edit & hapus jika belum dikunci */}
+                    {!logbookLocked && (
+                      <>
+                        {/* Tombol edit */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setError("")
+                            setMessage("")
+                            setSelectedLogbook(lb)
+                            setEditForm({ description: lb.description, documentation: lb.documentation ?? "" })
+                            setEditPhotoPreview(lb.documentation ?? null)
+                            setEditPhoto(null)
+                            setShowEditModal(true)
+                          }}
+                          className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-[#2d5a1b] shrink-0 gap-1 cursor-pointer"
+                        >
+                          <Pencil className="h-2.5 w-2.5" />
+                          Edit
+                        </Button>
 
-                    {/* Tombol Hapus */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setError("")
-                        setMessage("")
-                        setSelectedLogbook(lb)
-                        setShowDeleteModal(true)
-                      }}
-                      className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 shrink-0 gap-1 cursor-pointer"
-                    >
-                      <Trash2 className="h-2.5 w-2.5" />
-                      Hapus
-                    </Button>
+                        {/* Tombol Hapus */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setError("")
+                            setMessage("")
+                            setSelectedLogbook(lb)
+                            setShowDeleteModal(true)
+                          }}
+                          className="h-6 px-2 text-[11px] border-zinc-200 text-zinc-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 shrink-0 gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="h-2.5 w-2.5" />
+                          Hapus
+                        </Button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
