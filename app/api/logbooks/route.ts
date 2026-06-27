@@ -1,7 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CreateLogbookInput } from "@/types";
-import { getInternStatus } from "@/utils/intern";
+import { isLogbookLocked } from "@/utils/intern";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -77,10 +77,9 @@ export async function POST(request:Request) {
       where: { user_id: user.userId }
     })
 
-    const status = getInternStatus(profile)
-    if (status !== "ACTIVE") {
+    if (isLogbookLocked(profile)) {
       return NextResponse.json(
-        { error: "Status magangmu tidak aktif." },
+        { error: "Masa tenggang 14 hari telah berakhir. Logbook Anda sudah terkunci dan tidak dapat ditambahkan." },
         { status: 400 }
       )
     }

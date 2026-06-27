@@ -227,16 +227,27 @@ export default function InternDetailPage() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!resetPassword) {
-      setResetError("Password baru tidak boleh kosong")
-      return
-    }
-
-    setResetLoading(true); setResetError(""); setResetMessage("")
-    setTimeout(() => {
-      setResetLoading(false); setShowResetModal(false); setResetPassword("")
+    setResetLoading(true)
+    setResetError("")
+    try {
+      const res = await fetch(`/api/interns/${id}/reset-password`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_password: resetPassword })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setResetError(data.error)
+        return
+      }
+      setShowResetModal(false)
+      setResetPassword("")
       setResetMessage("Password berhasil direset. Intern akan diminta ganti password saat login.")
-    }, 1000)
+    } catch {
+      setResetError("Terjadi kesalahan.")
+    } finally {
+      setResetLoading(false)
+    }
   }
 
   if (loading) {

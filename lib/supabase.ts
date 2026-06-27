@@ -41,9 +41,6 @@ export async function uploadFile(
       upsert: true,
     })
 
-  console.log("UPLOAD DATA:", data)
-  console.log("UPLOAD ERROR:", error)
-
   if (error) {
     throw new Error(error.message)
   }
@@ -55,9 +52,6 @@ export async function uploadFile(
   return publicUrlData.publicUrl
 }
 
-// Extract storage path dari public URL Supabase
-// e.g. "https://xxx.supabase.co/storage/v1/object/public/intern-files/logbooks/123.jpg"
-//   -> "logbooks/123.jpg"
 export function extractStoragePath(publicUrl: string): string | null {
   try {
     const marker = "/storage/v1/object/public/intern-files/"

@@ -9,7 +9,7 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Intern Management",
+  title: "Magang DINKES Makassar",
   description: "Kelola data intern dan monitoring status magang.",
 }
 

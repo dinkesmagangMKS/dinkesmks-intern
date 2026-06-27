@@ -1,4 +1,4 @@
-import { autoClockOutIfNeeded } from "@/lib/attendance"
+import { autoClockOutIfNeeded, autoClockOutStaleAttendances } from "@/lib/attendance"
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTodayUTC } from "@/utils/date"
@@ -12,6 +12,8 @@ export async function GET() {
     if (!user || user.role !== "INTERN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    await autoClockOutStaleAttendances(user.userId)
 
     const today = getTodayUTC()
 

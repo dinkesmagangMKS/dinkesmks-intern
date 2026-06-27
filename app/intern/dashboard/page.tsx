@@ -69,9 +69,9 @@ function hitungDurasi(clockIn: string | null, clockOut: string | null): string {
 
 function StatusBadge({ status }: { status: string }) {
   const cls: Record<string, string> = {
-    HADIR:  "bg-emerald-50 text-emerald-700 border-emerald-200",
-    IZIN:   "bg-amber-50 text-amber-700 border-amber-200",
-    ALPHA:  "bg-rose-50 text-rose-600 border-rose-200",
+    HADIR: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    IZIN: "bg-amber-50 text-amber-700 border-amber-200",
+    ALPHA: "bg-rose-50 text-rose-600 border-rose-200",
   }
   return (
     <Badge variant="outline" className={`text-[11px] font-medium px-2 py-0.5 rounded ${cls[status] ?? cls.ALPHA}`}>
@@ -177,7 +177,7 @@ export default function InternDashboardPage({ setTab }: InternDashboardProps) {
         fetch("/api/profile"),
         fetch("/api/attendance/me").catch(() => null)
       ])
-      
+
       const dashData = await dashRes.json()
       const profileData = await profileRes.json()
       const attendanceData = attendanceRes ? await attendanceRes.json() : null
@@ -304,7 +304,7 @@ export default function InternDashboardPage({ setTab }: InternDashboardProps) {
                   <div className="space-y-1 flex-1">
                     <h4 className="text-xs font-bold text-red-800 tracking-wide">Pemberitahuan Penting</h4>
                     <p className="text-xs text-red-700 leading-relaxed font-medium">
-                      Masa magang Anda telah berakhir. Logbook Anda akan dikunci (tidak dapat dimodifikasi/dihapus) dan dokumentasinya dihapus permanen{" "}
+                      Masa magang Anda telah berakhir. Logbook Anda akan dikunci (tidak dapat menambahkan, memodifikasi dan menghapus logbook) dan dokumentasinya dihapus permanen{" "}
                       {gracePeriod.daysRemaining === 0 ? (
                         <span className="font-bold underline">hari ini</span>
                       ) : (
@@ -479,9 +479,9 @@ export default function InternDashboardPage({ setTab }: InternDashboardProps) {
             {/* STAT CARDS */}
             <div className="grid grid-cols-3 gap-2.5">
               {[
-                { label: "Hadir",  value: totalHadir,   cls: "text-[#2d5a1b]" },
-                { label: "Izin",   value: totalIzin,    cls: "text-amber-600" },
-                { label: "Absen",  value: totalAbsen,   cls: "text-red-600" },
+                { label: "Hadir", value: totalHadir, cls: "text-[#2d5a1b]" },
+                { label: "Izin", value: totalIzin, cls: "text-amber-600" },
+                { label: "Absen", value: totalAbsen, cls: "text-red-600" },
               ].map(s => (
                 <div key={s.label} className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-2.5">
                   <p className="text-[11px] text-zinc-400">{s.label}</p>
