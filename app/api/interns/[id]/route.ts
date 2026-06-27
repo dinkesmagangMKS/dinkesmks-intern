@@ -1,3 +1,4 @@
+import { autoClockOutStaleAttendances } from "@/lib/attendance"
 import { getSessionUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getInternStatus } from "@/utils/intern"
@@ -12,11 +13,13 @@ export async function GET(
 
   try {
     const user = await getSessionUser()
-    
+
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     
+    await autoClockOutStaleAttendances(user.userId)
+
     const intern = await prisma.user.findUnique({
       where: { id, role: "INTERN" },
       include: { profile: true, division: true }
